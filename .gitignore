@@ -6,45 +6,45 @@
 *.userosscache
 *.sln.docstates
 
-# Build results
-[Bb]in/
-[Oo]bj/
-out/
+# Build results (apply to all subdirectories)
+**/[Bb]in/
+**/[Oo]bj/
+**/out/
 
 # Visual Studio Code
-.vscode/
+**/.vscode/
 
 # Visual Studio cache/options
-.vs/
+**/.vs/
 
 # Rider
-.idea/
+**/.idea/
 
 # NuGet
-packages/
-*.nupkg
-.nuget/
+**/packages/
+**/*.nupkg
+**/.nuget/
 
 # Publish
-PublishProfiles/
-publish/
+**/PublishProfiles/
+**/publish/
 
 # IIS
-IISExpress/*
+**/IISExpress/*
 
 # Logs
-*.log
-logs/
+**/*.log
+**/logs/
 
 # Test results
-TestResults/
+**/TestResults/
 
 # Resharper
 _ReSharper*/
 *.DotSettings.user
 
 # Coverage
-coverage/
+**/coverage/
 
 # OS files
 .DS_Store
