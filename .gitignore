@@ -1,0 +1,57 @@
+## Visual Studio / .NET Core common ignores
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Bb]in/
+[Oo]bj/
+out/
+
+# Visual Studio Code
+.vscode/
+
+# Visual Studio cache/options
+.vs/
+
+# Rider
+.idea/
+
+# NuGet
+packages/
+*.nupkg
+.nuget/
+
+# Publish
+PublishProfiles/
+publish/
+
+# IIS
+IISExpress/*
+
+# Logs
+*.log
+logs/
+
+# Test results
+TestResults/
+
+# Resharper
+_ReSharper*/
+*.DotSettings.user
+
+# Coverage
+coverage/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# User secrets (uncomment if you store secrets locally)
+#secrets.json
