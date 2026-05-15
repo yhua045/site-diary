@@ -1,0 +1,11 @@
+/Users/boqi/Documents/Git/site-diary/src/SiteDiary.Domain/bin/Debug/net9.0/SiteDiary.Domain.deps.json
+/Users/boqi/Documents/Git/site-diary/src/SiteDiary.Domain/bin/Debug/net9.0/SiteDiary.Domain.dll
+/Users/boqi/Documents/Git/site-diary/src/SiteDiary.Domain/bin/Debug/net9.0/SiteDiary.Domain.pdb
+/Users/boqi/Documents/Git/site-diary/src/SiteDiary.Domain/obj/Debug/net9.0/SiteDiary.Domain.GeneratedMSBuildEditorConfig.editorconfig
+/Users/boqi/Documents/Git/site-diary/src/SiteDiary.Domain/obj/Debug/net9.0/SiteDiary.Domain.AssemblyInfoInputs.cache
+/Users/boqi/Documents/Git/site-diary/src/SiteDiary.Domain/obj/Debug/net9.0/SiteDiary.Domain.AssemblyInfo.cs
+/Users/boqi/Documents/Git/site-diary/src/SiteDiary.Domain/obj/Debug/net9.0/SiteDiary.Domain.csproj.CoreCompileInputs.cache
+/Users/boqi/Documents/Git/site-diary/src/SiteDiary.Domain/obj/Debug/net9.0/SiteDiary.Domain.dll
+/Users/boqi/Documents/Git/site-diary/src/SiteDiary.Domain/obj/Debug/net9.0/refint/SiteDiary.Domain.dll
+/Users/boqi/Documents/Git/site-diary/src/SiteDiary.Domain/obj/Debug/net9.0/SiteDiary.Domain.pdb
+/Users/boqi/Documents/Git/site-diary/src/SiteDiary.Domain/obj/Debug/net9.0/ref/SiteDiary.Domain.dll

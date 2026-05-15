@@ -1,0 +1,6 @@
+@SiteDiary.Web_HostAddress = http://localhost:5167
+
+GET {{SiteDiary.Web_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
