@@ -1,6 +1,8 @@
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using SiteDiary.Application.Features.Attachments;
 using SiteDiary.Application.Features.Diaries;
+using SiteDiary.Application.Features.DiaryTemplates;
 using SiteDiary.Application.Interfaces;
 using SiteDiary.Application.Services;
 using SiteDiary.Domain.Interfaces;
@@ -10,6 +12,8 @@ using SiteDiary.Infrastructure.Services;
 using SiteDiary.Web.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
+
+await EnsureDatabaseExistsAsync(builder.Configuration.GetConnectionString("DefaultConnection"));
 
 // ── Database ──────────────────────────────────────────────────────────────────
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -33,6 +37,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 // ── Feature Services (Vertical Slice — Issue #2) ──────────────────────────────
 builder.Services.AddScoped<IDiaryService, DiaryService>();
 builder.Services.AddScoped<IAttachmentService, AttachmentService>();
+builder.Services.AddScoped<IDiaryTemplateService, DiaryTemplateService>();
 
 // ── MVC + OpenAPI ─────────────────────────────────────────────────────────────
 builder.Services.AddControllers();
@@ -49,6 +54,13 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
+    using (var scope = app.Services.CreateScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        await db.Database.MigrateAsync();
+        await db.SeedAsync();
+    }
+
     app.MapOpenApi();
     app.UseCors("DevFrontend");
 }
@@ -65,6 +77,29 @@ app.UseStaticFiles();
 app.MapFallbackToFile("index.html");
 
 app.Run();
+
+static async Task EnsureDatabaseExistsAsync(string? connectionString)
+{
+    if (string.IsNullOrWhiteSpace(connectionString))
+    {
+        throw new InvalidOperationException("Connection string 'DefaultConnection' was not configured.");
+    }
+
+    var builder = new SqlConnectionStringBuilder(connectionString);
+    var databaseName = string.IsNullOrWhiteSpace(builder.InitialCatalog) ? "SiteDiary" : builder.InitialCatalog;
+
+    var masterBuilder = new SqlConnectionStringBuilder(connectionString)
+    {
+        InitialCatalog = "master"
+    };
+
+    await using var connection = new SqlConnection(masterBuilder.ConnectionString);
+    await connection.OpenAsync();
+
+    await using var command = connection.CreateCommand();
+    command.CommandText = $"IF DB_ID(N'{databaseName.Replace("'", "''")}') IS NULL CREATE DATABASE [{databaseName.Replace("]", "]]" )}];";
+    await command.ExecuteNonQueryAsync();
+}
 
 // ── Adapter for IWebHostEnvironmentInfo ───────────────────────────────────────
 public class WebHostEnvironmentAdapter(IWebHostEnvironment env) : IWebHostEnvironmentInfo

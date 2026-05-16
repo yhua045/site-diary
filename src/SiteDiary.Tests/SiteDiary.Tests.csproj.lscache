@@ -55,7 +55,9 @@ TemporaryDependencyNodeTargetIdentifier=net9.0
 [sourceFiles]
 <NUGET>/microsoft.net.test.sdk/17.12.0/build/netcoreapp3.1/Microsoft.NET.Test.Sdk.Program.cs
  @folderNames=..,..,..,..,..,.nuget,packages,microsoft.net.test.sdk,17.12.0,build,netcoreapp3.1
-Integration/RepositoryTests.cs
+Integration/
+ DataSeederTests.cs
+ RepositoryTests.cs
 obj/Debug/net9.0/
  .NETCoreApp,Version=v9.0.AssemblyAttributes.cs
  SiteDiary.Tests.AssemblyInfo.cs
@@ -63,10 +65,14 @@ obj/Debug/net9.0/
 Unit/Application/
  AttachmentServiceTests.cs
  DiaryServiceV2Tests_InMemory.cs
+ DiaryTemplateServiceTests.cs
  SiteServiceTests.cs
 Unit/
  Domain/EntityTests.cs
- Web/Middleware/XUserIdMiddlewareTests.cs
+ Web/
+  DiaryTemplatesControllerTests.cs
+  Middleware/XUserIdMiddlewareTests.cs
+  UsersControllerTests.cs
 UnitTest1.cs
 
 [metadataReferences]
@@ -382,6 +388,7 @@ UnitTest1.cs
 <NUGET>/
  azure.core/1.38.0/lib/net6.0/Azure.Core.dll
  azure.identity/1.11.4/lib/netstandard2.0/Azure.Identity.dll
+ bogus/35.6.5/lib/net6.0/Bogus.dll
  castle.core/5.1.1/lib/net6.0/Castle.Core.dll
  fluentassertions/6.12.2/lib/net6.0/FluentAssertions.dll
  microsoft.aspnetcore.mvc.testing/9.0.5/lib/net9.0/Microsoft.AspNetCore.Mvc.Testing.dll

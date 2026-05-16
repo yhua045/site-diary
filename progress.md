@@ -60,12 +60,121 @@
 - API documentation (Swagger/OpenAPI)
 - Deployment configuration (Docker, CI/CD)
 
+---
+
+## Phase 1.1: Data Seeding Refinement ✅
+
+**Status:** Complete  
+**Date:** 16 May 2026
+
+### Completed Tasks
+- ✅ Updated DataSeeder to generate 5 users (1 per role) instead of 25
+  - Simplified seed data volume for development/testing
+  - Each of 5 roles (Project Manager, Site Manager, Safety Manager, Site Foreman, Construction Worker) gets exactly 1 user
+  - Maintains 2 construction sites and 5 roles unchanged
+- ✅ Updated DataSeederTests to reflect new expectations (5 users vs 25)
+  - SeedAsync_ShouldSeedInitialData_WhenDatabaseIsEmpty: Updated user count assertion
+  - SeedAsync_ShouldNotDoubleSeed_WhenDataAlreadyExists: Updated user count assertion
+- ✅ Verified all tests pass: 49/49 passed, 0 failed (xUnit)
+
+### Validation Results
+- ✅ **Build:** Succeeded with 0 warnings, 0 errors
+- ✅ **Tests:** 49/49 passed, 0 failed
+
+---
+
+---
+
+## Phase 2: Core Diary Features & Field Override System ✅
+
+**Status:** Complete  
+**Date:** 16 May 2026
+
+### Completed Tasks
+
+#### Backend (Diary Domain & Features)
+- ✅ Extended Diary entity with field override system:
+  - Added EntryDate, Description, FieldOverrides (NVARCHAR(MAX) JSON) properties
+  - Implemented dynamic field configuration per construction site
+  - Database migration: AddDiaryFieldOverrides (EF Core 9)
+- ✅ Implemented DiaryTemplate feature:
+  - DiaryTemplateService with CRUD operations
+  - DiaryTemplate entity for site-specific entry templates
+  - DiaryTemplatesController (Api) with full endpoints
+  - DiaryTemplateServiceTests (Unit tests)
+  - DiaryTemplatesControllerTests (Integration tests)
+- ✅ Enhanced DiaryService:
+  - DiaryServiceV2Tests_InMemory: Comprehensive in-memory tests with EF Core 9
+  - Updated DTOs: DiaryDto, CreateDiaryDto with full mapping
+  - Service-level filtering and validation
+- ✅ Implemented X-User-Id Middleware:
+  - Extracts user context from HTTP headers
+  - Applied in Program.cs middleware pipeline
+  - Refactored API controllers to use user context
+- ✅ Enhanced SiteService:
+  - Added site-specific query operations
+  - SiteServiceTests updated with new assertions
+- ✅ Updated UnitOfWork pattern:
+  - Added repository interfaces for DiaryTemplate
+  - Coordinated repository access
+- ✅ Created DataSeeder:
+  - Generates initial construction sites with templates
+  - Integrates with ApplicationDbContext initialization
+  - DataSeederTests with comprehensive test suite
+
+#### Frontend (Setup & Infrastructure)
+- ✅ Initialized Vitest testing framework
+- ✅ Created frontend test structure: `frontend/src/test/`
+- ✅ Configured test utilities and helpers
+- ✅ Setup React Testing Library integration
+
+#### Infrastructure & Configuration
+- ✅ Updated docker-compose.yml for multi-service setup
+- ✅ Updated Program.cs:
+  - Middleware pipeline configuration
+  - DataSeeder integration
+  - Service registration refinement
+
+### Validation Results
+- ✅ **Backend Build:** Succeeded with 1 minor warning (CS8602 in UsersControllerTests)
+- ✅ **Backend Tests:** 74/74 passed, 0 failed (xUnit)
+- ✅ **Frontend Linting:** Passed with zero errors (ESLint)
+- ✅ **TypeScript Compilation:** Successful (npx tsc --noEmit)
+- ✅ **Static Analysis:** All checks passed
+
+### Architecture Enhancements
+- **Field Override System:** JSON-based dynamic field configuration per site
+- **Middleware Pattern:** X-User-Id header extraction for multi-tenant context
+- **Template System:** DiaryTemplate entities for site-specific entry templates
+- **Service Layer:** Enhanced SiteService and DiaryService with query flexibility
+- **Test Coverage:** In-memory EF Core tests for service validation
+
+### Deferred Items (Future Phases)
+- Frontend page components for Diaries (list, detail, create)
+- API error handling middleware (centralized exception handling)
+- Authentication & Authorization (ASP.NET Core Identity + JWT)
+- File attachment handling (upload, storage, retrieval)
+- Frontend integration tests (Vitest + React Testing Library)
+- API documentation (Swagger/OpenAPI generation)
+- Deployment & CI/CD configuration
+
+### Pending Frontend Tasks for Next Phase
+- Build the diary list, detail, and create pages in React
+- Implement the dynamic diary form using the role-based template returned by the API
+- Support add/remove of fields within the diary form without template selection by the user
+- Add image/file upload UI and wire it to the diary entry workflow
+- Add field-level and form-level validations with clear user feedback
+- Wire API calls for diary templates, diary CRUD, and attachment upload endpoints
+- Add frontend tests for the dynamic form, validation rules, and upload interactions
+
+---
+
 ### Next Steps
-1. Begin Phase 2: Core feature implementation (CRUD operations on diary entries, file attachments)
-2. Implement frontend pages and components for Sites, Diaries, and Users
-3. Wire API client calls in React components
-4. Implement authentication and authorization
-5. Add comprehensive frontend integration tests
+1. Begin Phase 3: Frontend Diary Components & Integration
+2. Implement the role-based dynamic diary form and page shell
+3. Wire API client calls for templates, diary CRUD, and uploads
+4. Add validation, file upload, and frontend test coverage
+5. Follow up with authentication, centralized error handling, and deployment work
 
 ---
 
@@ -73,4 +182,8 @@
 - All projects use `int` for primary/foreign keys (no GUIDs) for performance
 - Database schema is ready for SQL Server integration
 - Frontend build chain (`npm run build`) compiles TypeScript and Tailwind into optimized bundle
-- Ready for first deployment preparation in Phase 2
+- Diary field overrides stored as JSON in NVARCHAR(MAX) for flexibility
+- X-User-Id middleware provides multi-tenant user context
+- DataSeeder integration in Program.cs enables automated database initialization
+- Test suite comprehensive: 74 backend tests + frontend test infrastructure
+- Ready for Phase 3 frontend development

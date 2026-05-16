@@ -1,5 +1,7 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using SiteDiary.Application.Features.Attachments;
+using SiteDiary.Application.Features.DiaryTemplates;
 using SiteDiary.Application.Shared;
 using SiteDiary.Domain.Entities;
 using SiteDiary.Domain.Interfaces;
@@ -8,10 +10,16 @@ namespace SiteDiary.Application.Features.Diaries;
 
 public class DiaryService(IUnitOfWork uow) : IDiaryService
 {
+    private static readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+    };
     public async Task<IReadOnlyList<DiaryDto>> GetBySiteIdAsync(int siteId, CancellationToken ct = default)
     {
         var diaries = await uow.Diaries.Query()
             .Where(d => d.ConstructionSiteId == siteId && !d.IsArchived)
+            .OrderByDescending(d => d.Date)
+            .ThenByDescending(d => d.Id)
             .ToListAsync(ct);
         return diaries.Select(MapToDto).ToList();
     }
@@ -30,10 +38,12 @@ public class DiaryService(IUnitOfWork uow) : IDiaryService
         {
             ConstructionSiteId = siteId,
             AuthorUserId = authorUserId,
+            DiaryTemplateId = dto.DiaryTemplateId,
             Title = dto.Title,
             Content = dto.Content,
             Date = DateOnly.FromDateTime(dto.Date.Date),
             IsPublished = dto.IsPublished,
+            FieldOverrides = SerializeOverrides(dto.FieldOverrides),
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -52,6 +62,7 @@ public class DiaryService(IUnitOfWork uow) : IDiaryService
         diary.Title = dto.Title;
         diary.Content = dto.Content;
         diary.Date = DateOnly.FromDateTime(dto.Date.Date);
+        diary.FieldOverrides = SerializeOverrides(dto.FieldOverrides);
         diary.UpdatedAt = DateTime.UtcNow;
 
         uow.Diaries.Update(diary);
@@ -78,12 +89,26 @@ public class DiaryService(IUnitOfWork uow) : IDiaryService
     private static DiaryDto MapToDto(Diary d) =>
         new(d.Id, d.ConstructionSiteId, d.AuthorUserId, d.Title, d.Content,
             new DateTimeOffset(d.Date.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero),
-            d.IsPublished);
+            d.IsPublished, d.DiaryTemplateId);
 
     private static DiaryDetailDto MapToDetailDto(Diary d) =>
         new(d.Id, d.ConstructionSiteId, d.AuthorUserId, d.Title, d.Content,
             new DateTimeOffset(d.Date.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero),
             d.IsPublished,
             d.Attachments.Select(a => new AttachmentDto(a.Id, a.DiaryId, a.FileName, a.FileUrl, a.ContentType))
-                         .ToList());
+                         .ToList(),
+            d.DiaryTemplateId,
+            DeserializeOverrides(d.FieldOverrides));
+
+    private static FieldOverridesDto? DeserializeOverrides(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return null;
+        return JsonSerializer.Deserialize<FieldOverridesDto>(json, _jsonOptions);
+    }
+
+    private static string? SerializeOverrides(FieldOverridesDto? overrides)
+    {
+        if (overrides is null) return null;
+        return JsonSerializer.Serialize(overrides, _jsonOptions);
+    }
 }

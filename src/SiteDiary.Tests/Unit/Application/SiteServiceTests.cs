@@ -160,4 +160,70 @@ public class SiteServiceTests : IDisposable
 
         result.Should().BeFalse();
     }
+
+    // ── GetByUserIdAsync ──────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task GetByUserIdAsync_ReturnsOnlySitesAssignedToUser()
+    {
+        // Arrange: 3 sites, user 10 assigned to sites 1 & 2, site 3 unassigned
+        var site1 = new ConstructionSite { Id = 1, Name = "Site A", Address = "1 St", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+        var site2 = new ConstructionSite { Id = 2, Name = "Site B", Address = "2 St", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+        var site3 = new ConstructionSite { Id = 3, Name = "Site C", Address = "3 St", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+        await _db.Set<ConstructionSite>().AddRangeAsync(site1, site2, site3);
+
+        var su1 = new SiteUser { ConstructionSiteId = 1, UserId = 10, AssignedRoleId = 1, JoinedDate = DateOnly.FromDateTime(DateTime.UtcNow), CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+        var su2 = new SiteUser { ConstructionSiteId = 2, UserId = 10, AssignedRoleId = 1, JoinedDate = DateOnly.FromDateTime(DateTime.UtcNow), CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+        await _db.Set<SiteUser>().AddRangeAsync(su1, su2);
+        await _db.SaveChangesAsync();
+
+        var service = new SiteService(_uow);
+
+        // Act
+        var result = await service.GetByUserIdAsync(10);
+
+        // Assert
+        result.Should().HaveCount(2);
+        result.Select(s => s.Id).Should().BeEquivalentTo([1, 2]);
+    }
+
+    [Fact]
+    public async Task GetByUserIdAsync_ExcludesArchivedSites()
+    {
+        // Arrange: site 1 is active, site 2 is archived — both assigned to user 10
+        var site1 = new ConstructionSite { Id = 1, Name = "Active", Address = "1 St", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+        var site2 = new ConstructionSite { Id = 2, Name = "Archived", Address = "2 St", IsArchived = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+        await _db.Set<ConstructionSite>().AddRangeAsync(site1, site2);
+
+        var su1 = new SiteUser { ConstructionSiteId = 1, UserId = 10, AssignedRoleId = 1, JoinedDate = DateOnly.FromDateTime(DateTime.UtcNow), CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+        var su2 = new SiteUser { ConstructionSiteId = 2, UserId = 10, AssignedRoleId = 1, JoinedDate = DateOnly.FromDateTime(DateTime.UtcNow), CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+        await _db.Set<SiteUser>().AddRangeAsync(su1, su2);
+        await _db.SaveChangesAsync();
+
+        var service = new SiteService(_uow);
+
+        // Act
+        var result = await service.GetByUserIdAsync(10);
+
+        // Assert
+        result.Should().HaveCount(1);
+        result[0].Name.Should().Be("Active");
+    }
+
+    [Fact]
+    public async Task GetByUserIdAsync_UnknownUser_ReturnsEmptyList()
+    {
+        // Arrange: no SiteUser records for user 99
+        var site = new ConstructionSite { Name = "Site", Address = "Addr", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+        await _db.Set<ConstructionSite>().AddAsync(site);
+        await _db.SaveChangesAsync();
+
+        var service = new SiteService(_uow);
+
+        // Act
+        var result = await service.GetByUserIdAsync(99);
+
+        // Assert
+        result.Should().BeEmpty();
+    }
 }

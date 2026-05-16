@@ -12,6 +12,8 @@ public class Diary : BaseEntity
     public DateOnly Date { get; set; }
     public bool IsPublished { get; set; } = false;
     public bool IsArchived { get; set; } = false;
+    /// <summary>JSON: { "removed": [], "added": [] } — per-diary field overrides relative to the base template.</summary>
+    public string? FieldOverrides { get; set; }
 
     // Navigation
     public ConstructionSite ConstructionSite { get; set; } = null!;

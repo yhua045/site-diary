@@ -55,9 +55,12 @@ TemporaryDependencyNodeTargetIdentifier=net9.0
 [sourceFiles]
 Data/
  ApplicationDbContext.cs
+ DataSeeder.cs
  Migrations/
   20260515201001_InitialCreate.cs
   20260515201001_InitialCreate.Designer.cs
+  20260516032539_AddDiaryFieldOverrides.cs
+  20260516032539_AddDiaryFieldOverrides.Designer.cs
   ApplicationDbContextModelSnapshot.cs
 obj/Debug/net9.0/
  .NETCoreApp,Version=v9.0.AssemblyAttributes.cs
@@ -242,6 +245,7 @@ Services/
 <NUGET>/
  azure.core/1.38.0/lib/net6.0/Azure.Core.dll
  azure.identity/1.11.4/lib/netstandard2.0/Azure.Identity.dll
+ bogus/35.6.5/lib/net6.0/Bogus.dll
  microsoft.bcl.asyncinterfaces/7.0.0/lib/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.dll
  microsoft.data.sqlclient/5.1.6/ref/net6.0/Microsoft.Data.SqlClient.dll
  microsoft.entityframeworkcore.abstractions/9.0.5/lib/net8.0/Microsoft.EntityFrameworkCore.Abstractions.dll

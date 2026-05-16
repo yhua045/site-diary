@@ -13,6 +13,7 @@ public class UnitOfWork(ApplicationDbContext db) : IUnitOfWork
     public IRepository<DiaryTemplate> DiaryTemplates { get; } = new Repository<DiaryTemplate>(db);
     public IRepository<Attachment> Attachments { get; } = new Repository<Attachment>(db);
     public IRepository<AuditHistory> AuditHistories { get; } = new Repository<AuditHistory>(db);
+    public IRepository<SiteUser> SiteUsers { get; } = new Repository<SiteUser>(db);
 
     public Task<int> SaveChangesAsync(CancellationToken ct = default) =>
         db.SaveChangesAsync(ct);

@@ -59,6 +59,7 @@ Controllers/Api/
 Features/
  Attachments/AttachmentsController.cs
  Diaries/DiariesController.cs
+ DiaryTemplates/DiaryTemplatesController.cs
 Middleware/
  HttpContextExtensions.cs
  HttpContextKeys.cs
@@ -381,6 +382,7 @@ Program.cs
 <NUGET>/
  azure.core/1.38.0/lib/net6.0/Azure.Core.dll
  azure.identity/1.11.4/lib/netstandard2.0/Azure.Identity.dll
+ bogus/35.6.5/lib/net6.0/Bogus.dll
  microsoft.aspnetcore.openapi/9.0.7/lib/net9.0/Microsoft.AspNetCore.OpenApi.dll
  microsoft.bcl.asyncinterfaces/7.0.0/lib/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.dll
  microsoft.data.sqlclient/5.1.6/ref/net6.0/Microsoft.Data.SqlClient.dll

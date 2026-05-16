@@ -50,6 +50,25 @@ public class SiteService(IUnitOfWork uow) : ISiteService
         return MapToDto(site);
     }
 
+    public async Task<IReadOnlyList<ConstructionSiteDto>> GetByUserIdAsync(int userId, CancellationToken ct = default)
+    {
+        // Step 1: resolve the construction site IDs this user is assigned to.
+        var siteIds = await uow.SiteUsers.Query()
+            .Where(su => su.UserId == userId)
+            .Select(su => su.ConstructionSiteId)
+            .ToListAsync(ct);
+
+        if (siteIds.Count == 0)
+            return Array.Empty<ConstructionSiteDto>();
+
+        // Step 2: fetch sites — global IsArchived filter already excludes archived sites.
+        var sites = await uow.Sites.Query()
+            .Where(s => siteIds.Contains(s.Id))
+            .ToListAsync(ct);
+
+        return sites.Select(MapToDto).ToList();
+    }
+
     public async Task<bool> ArchiveAsync(int id, CancellationToken ct = default)
     {
         var site = await uow.Sites.GetByIdAsync(id, ct);

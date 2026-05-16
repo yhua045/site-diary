@@ -11,5 +11,6 @@ public interface IUnitOfWork
     IRepository<DiaryTemplate> DiaryTemplates { get; }
     IRepository<Attachment> Attachments { get; }
     IRepository<AuditHistory> AuditHistories { get; }
+    IRepository<SiteUser> SiteUsers { get; }
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

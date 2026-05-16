@@ -1,4 +1,5 @@
 using SiteDiary.Application.Features.Attachments;
+using SiteDiary.Application.Features.DiaryTemplates;
 
 namespace SiteDiary.Application.Features.Diaries;
 
@@ -12,10 +13,11 @@ public record DiaryDto(
     string Title,
     string? Content,
     DateTimeOffset Date,
-    bool IsPublished);
+    bool IsPublished,
+    int? DiaryTemplateId = null);
 
 /// <summary>
-/// Detail response — adds eager-loaded attachment list.
+/// Detail response — adds eager-loaded attachment list and per-diary field overrides.
 /// </summary>
 public record DiaryDetailDto(
     int Id,
@@ -25,7 +27,9 @@ public record DiaryDetailDto(
     string? Content,
     DateTimeOffset Date,
     bool IsPublished,
-    IReadOnlyList<AttachmentDto> Attachments);
+    IReadOnlyList<AttachmentDto> Attachments,
+    int? DiaryTemplateId = null,
+    FieldOverridesDto? FieldOverrides = null);
 
 /// <summary>
 /// POST body — server-managed fields (Id, AuthorUserId, ConstructionSiteId, timestamps) are NOT accepted.
@@ -34,7 +38,9 @@ public record CreateDiaryDto(
     string Title,
     string? Content,
     DateTimeOffset Date,
-    bool IsPublished = false);
+    bool IsPublished = false,
+    int? DiaryTemplateId = null,
+    FieldOverridesDto? FieldOverrides = null);
 
 /// <summary>
 /// PUT body — only mutable user fields.
@@ -42,4 +48,5 @@ public record CreateDiaryDto(
 public record UpdateDiaryDto(
     string Title,
     string? Content,
-    DateTimeOffset Date);
+    DateTimeOffset Date,
+    FieldOverridesDto? FieldOverrides = null);

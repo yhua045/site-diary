@@ -64,6 +64,12 @@ Features/Diaries/
  DiaryDtos.cs
  DiaryService.cs
  IDiaryService.cs
+Features/DiaryTemplates/
+ DiaryTemplateDtos.cs
+ DiaryTemplateService.cs
+ FieldOverridesDto.cs
+ IDiaryTemplateService.cs
+ SectionDef.cs
 Interfaces/
  ISiteService.cs
  IUserService.cs

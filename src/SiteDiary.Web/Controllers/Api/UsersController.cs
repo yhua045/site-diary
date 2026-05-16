@@ -1,12 +1,16 @@
 using Microsoft.AspNetCore.Mvc;
 using SiteDiary.Application.DTOs;
+using SiteDiary.Application.Features.DiaryTemplates;
 using SiteDiary.Application.Interfaces;
 
 namespace SiteDiary.Web.Controllers.Api;
 
 [ApiController]
 [Route("api/users")]
-public class UsersController(IUserService userService) : ControllerBase
+public class UsersController(
+    IUserService userService,
+    ISiteService siteService,
+    IDiaryTemplateService templateService) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<UserDto>>> GetAll(CancellationToken ct) =>
@@ -17,6 +21,30 @@ public class UsersController(IUserService userService) : ControllerBase
     {
         var user = await userService.GetByIdAsync(id, ct);
         return user is null ? NotFound() : Ok(user);
+    }
+
+    [HttpGet("{userId:int}/sites")]
+    public async Task<ActionResult<IReadOnlyList<ConstructionSiteDto>>> GetSitesByUserId(int userId, CancellationToken ct)
+    {
+        var user = await userService.GetByIdAsync(userId, ct);
+        if (user is null) return NotFound();
+
+        var sites = await siteService.GetByUserIdAsync(userId, ct);
+        return Ok(sites);
+    }
+
+    /// <summary>
+    /// Returns the diary template assigned to the user's role.
+    /// The API resolves the correct template — the user has no template selector.
+    /// </summary>
+    [HttpGet("{userId:int}/diary-template")]
+    public async Task<ActionResult<DiaryTemplateDto>> GetDiaryTemplateByUserId(int userId, CancellationToken ct)
+    {
+        var user = await userService.GetByIdAsync(userId, ct);
+        if (user is null) return NotFound();
+
+        var template = await templateService.GetByUserRoleAsync(userId, ct);
+        return template is null ? NotFound() : Ok(template);
     }
 
     [HttpPost]
@@ -33,3 +61,4 @@ public class UsersController(IUserService userService) : ControllerBase
         return updated is null ? NotFound() : Ok(updated);
     }
 }
+
