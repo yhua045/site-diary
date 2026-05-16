@@ -570,6 +570,27 @@
 
 ---
 
+## Phase 6.1: File Attachment Input Fix 🔧
+
+**Status:** Complete  
+**Date:** 16 May 2026
+
+### Completed Tasks
+- ✅ Fixed DiaryCreateForm file_attachment field rendering
+  - Added missing `<input type="file" multiple />` in renderFieldInput() switch case
+  - File state management: files collected via onChange handler and stored in component state
+  - Files array passed to onSubmit payload for post-diary-create upload
+- ✅ Verified file upload workflow integration
+  - DiaryScreen.tsx: uploadAttachment() called synchronously post-diary-create via Promise.all()
+  - Secure pattern: diary created first, then files uploaded with diary ID reference
+  - No breaking changes to existing form structure or validation logic
+
+### Validation Results
+- ✅ **Frontend Linting:** Passed (ESLint)
+- ✅ **TypeScript Compilation:** No errors
+
+---
+
 ## Notes
 - All projects use `int` for primary/foreign keys (no GUIDs) for performance
 - Database schema is ready for SQL Server integration

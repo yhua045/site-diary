@@ -8,6 +8,7 @@ interface CreateDiaryPayload {
     removed: string[]
     added: FieldDef[]
   }
+  files?: File[]
 }
 
 interface DiaryCreateFormProps {
@@ -30,6 +31,7 @@ export function DiaryCreateForm({ template, onSubmit, onClose, isSubmitting }: D
   const [isAddingField, setIsAddingField] = useState(false)
   const [newFieldLabel, setNewFieldLabel] = useState('')
   const [newFieldType, setNewFieldType] = useState('text')
+  const [files, setFiles] = useState<File[]>([])
 
   const baseFields = template.sections.flatMap(s => s.fields)
   const allFields = [...baseFields, ...customFields]
@@ -68,7 +70,8 @@ export function DiaryCreateForm({ template, onSubmit, onClose, isSubmitting }: D
           added: customFields,
           removed: []
         }
-      })
+      }),
+      files: files.length > 0 ? files : undefined
     })
   }
 
@@ -199,6 +202,22 @@ export function DiaryCreateForm({ template, onSubmit, onClose, isSubmitting }: D
             </div>
           )}
         </div>
+      )
+    }
+
+    if (field.type === 'file_attachment') {
+      return (
+        <input
+          id={field.id}
+          type="file"
+          multiple
+          onChange={e => {
+            if (e.target.files) {
+              setFiles(Array.from(e.target.files))
+            }
+          }}
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+        />
       )
     }
 

@@ -58,11 +58,11 @@ export function DiaryScreen() {
     setShowCreate(true)
   }
 
-  async function handleSubmit(data: { payload: Record<string, unknown>; date: string; fieldOverrides?: FieldOverrides }) {
+  async function handleSubmit(data: { payload: Record<string, unknown>; date: string; fieldOverrides?: FieldOverrides; files?: File[] }) {
     if (!template) return
     setIsSubmitting(true)
     try {
-      await diariesApi.create(
+      const created = await diariesApi.create(
         siteId,
         {
           title: `Diary ${data.date}`,
@@ -73,6 +73,11 @@ export function DiaryScreen() {
         },
         { userId: selectedUser?.id },
       )
+      
+      if (data.files && data.files.length > 0) {
+        await Promise.all(data.files.map(file => diariesApi.uploadAttachment(created.id, file)))
+      }
+
       setShowCreate(false)
       const updated = await diariesApi.getTimeline(siteId, { userId: selectedUser?.id })
       setEntries(updated)
