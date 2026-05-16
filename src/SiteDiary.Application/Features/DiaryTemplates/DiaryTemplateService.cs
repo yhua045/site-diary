@@ -26,11 +26,24 @@ public class DiaryTemplateService(IUnitOfWork uow) : IDiaryTemplateService
 
     public async Task<DiaryTemplateDto?> GetByUserRoleAsync(int userId, CancellationToken ct = default)
     {
-        // POC: return the single IsDefault=true template for all roles.
-        // Future: resolve via UserRole.DiaryTemplateId FK.
-        var template = await uow.DiaryTemplates
+        // Resolve: User → active UserRole → Role
+        var role = await uow.UserRoles
             .Query()
-            .FirstOrDefaultAsync(t => t.IsDefault, ct);
+            .Where(ur => ur.UserId == userId && ur.IsActive)
+            .Select(ur => ur.Role)
+            .FirstOrDefaultAsync(ct);
+
+        // Look up the role-specific template by RoleId
+        var template = role is not null
+            ? await uow.DiaryTemplates
+                   .Query()
+                   .FirstOrDefaultAsync(t => t.RoleId == role.Id, ct)
+            : null;
+
+        // Fall back to the system default if no role-specific template found
+        template ??= await uow.DiaryTemplates
+               .Query()
+               .FirstOrDefaultAsync(t => t.IsDefault, ct);
 
         if (template is null) return null;
 

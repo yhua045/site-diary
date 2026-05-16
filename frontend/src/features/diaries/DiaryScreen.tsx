@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useLocation, Link } from 'react-router-dom'
-import type { User, DiaryTimelineEntry, DiaryTemplate } from '../../api/types'
+import type { User, DiaryTimelineEntry, DiaryTemplate, FieldOverrides } from '../../api/types'
 import { diariesApi } from '../../api/diaries'
 import { usersApi } from '../../api/users'
 import { useUserList } from '../users/useUserList'
@@ -58,7 +58,7 @@ export function DiaryScreen() {
     setShowCreate(true)
   }
 
-  async function handleSubmit(data: { payload: Record<string, unknown>; date: string }) {
+  async function handleSubmit(data: { payload: Record<string, unknown>; date: string; fieldOverrides?: FieldOverrides }) {
     if (!template) return
     setIsSubmitting(true)
     try {
@@ -69,6 +69,7 @@ export function DiaryScreen() {
           date: data.date,
           diaryTemplateId: template.id,
           payload: data.payload,
+          fieldOverrides: data.fieldOverrides,
         },
         { userId: selectedUser?.id },
       )

@@ -99,6 +99,14 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             e.Property(x => x.Sections).HasColumnType("nvarchar(max)");
             e.HasOne(x => x.CreatedBy).WithMany()
                 .HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
+
+            e.HasOne(x => x.Role)
+             .WithMany(r => r.DiaryTemplates)
+             .HasForeignKey(x => x.RoleId)
+             .OnDelete(DeleteBehavior.SetNull);
+
+            e.HasIndex(x => x.RoleId)
+             .HasDatabaseName("IX_DiaryTemplates_RoleId");
         });
 
         // ── AuditHistory ──────────────────────────────────────────────────

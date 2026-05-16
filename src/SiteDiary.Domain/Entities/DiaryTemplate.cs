@@ -11,7 +11,11 @@ public class DiaryTemplate : BaseEntity
     public int CreatedByUserId { get; set; }
     public bool IsArchived { get; set; } = false;
 
+    // FK → Role (nullable; null = fallback/default template)
+    public int? RoleId { get; set; }
+
     // Navigation
     public User CreatedBy { get; set; } = null!;
+    public Role? Role { get; set; }
     public ICollection<Diary> Diaries { get; set; } = new List<Diary>();
 }

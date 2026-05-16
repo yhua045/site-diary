@@ -442,6 +442,134 @@
 
 ---
 
+## Phase 6: Role-Based Diary Templates & Entry Creation Form ✅
+
+**Status:** Complete  
+**Date:** 16 May 2026  
+**Issue:** #6
+
+### Completed Tasks
+
+#### Backend (Role-Based Templates & Schema)
+- ✅ Extended DiaryTemplate entity with RoleId FK:
+  - Added `RoleId` (nullable int) foreign key to Role
+  - Added `Role` navigation property
+  - Enables one-to-many role-to-templates relationship
+- ✅ Extended Role entity:
+  - Added `DiaryTemplates` collection navigation property
+  - One-to-Many: one role can have one or more templates
+- ✅ Created EF Core migration:
+  - AddDiaryTemplateRoleFK: Adds RoleId column + FK constraint with ON DELETE SET NULL
+  - Index IX_DiaryTemplates_RoleId for query optimization
+  - Backward-compatible: nullable column, no existing data affected
+- ✅ Implemented role-based template seeding in DataSeeder:
+  - Five role-specific templates (Project Manager, Site Manager, Safety Manager, Site Foreman, Construction Worker)
+  - Each template tailored with role-relevant fields (minimal required field sets)
+  - File attachment field (`file_attachment`) in all templates for photo/document uploads
+  - Dynamic fields component (`dynamic_fields`) in all templates for on-the-fly custom field addition
+  - System-level fallback template (IsDefault=true) for unassigned roles
+  - Idempotent seeding: prevents double-seeding on restart
+- ✅ Enhanced DiaryTemplateService:
+  - Updated GetByUserRoleAsync to resolve correct template via Role→DiaryTemplates navigation
+  - Fallback to IsDefault template if no role-specific template found
+  - Maintains backward compatibility with existing diary entries
+- ✅ Updated DataSeederTests:
+  - Validates 5 role-specific templates seeded
+  - Confirms template-role associations correct
+  - Verifies GetByUserRoleAsync resolution logic
+- ✅ Updated UnitOfWork & DbContext configuration:
+  - Configured HasOne/WithMany relationships with delete behavior
+  - Added RoleId index for efficient lookups
+
+#### Frontend (Diary Entry Creation Form)
+- ✅ Implemented DiaryCreateForm.tsx component:
+  - Dynamic form builder rendering template sections and fields
+  - Base field rendering from template sections + custom fields
+  - Field validation: required field checks, per-field error states
+  - Custom field addition UI: label input + type selector (text/number/date/textarea)
+  - Dynamic field removal capability
+  - Date picker (defaults to today's ISO date)
+  - Type-aware payload construction: number/boolean conversion, string defaults
+  - Field override tracking: captures added custom fields for schema extension
+  - Submit & cancel handlers with form state management
+- ✅ Enhanced frontend types:
+  - CreateDiaryPayload type with payload, date, and optional fieldOverrides
+  - FieldDef updates for complete field metadata (id, label, type, required, placeholder)
+  - DiaryTemplate type refinements for form rendering
+- ✅ Extended fieldRenderers.tsx test coverage:
+  - Added test suite for dynamic_fields field type (custom field addition UI)
+  - Tests for file_attachment field type rendering
+  - Tests for error state rendering and interactive form behavior
+- ✅ Updated Vite config:
+  - Optimized build configuration for production deployment
+
+### Validation Results
+- ✅ **Linting Passed:** ESLint clean with zero errors
+- ✅ **TypeScript Compilation:** Successful (npx tsc --noEmit)
+- ✅ **Frontend Tests:** 68/68 passed, 0 failed (Vitest)
+  - Tests include Phase 3-5 (user switcher, sites screen) + Phase 6 (fieldRenderers)
+- ✅ **Backend Tests:** 92/92 passed, 0 failed (xUnit)
+  - Includes new DataSeederTests + DiaryTemplateService tests
+- ✅ **Static Analysis:** All checks passed
+
+### Architecture & Design Decisions
+- **Role-Template Association:** FK placed on DiaryTemplate (not Role) for clean one-to-many cardinality
+- **Nullable RoleId:** Enables future role-generic templates and graceful fallback to IsDefault
+- **Immutable Template Snapshots:** Persisted in diary entry for historical accuracy
+- **Custom Field Addition:** Runtime field extension via fieldOverrides, captured per-diary for schema evolution
+- **Type-Aware Serialization:** Payload construction handles number/boolean conversions for API compatibility
+- **Minimalist Role Templates:** Each template contains only role-relevant fields (UX-optimized for mobile)
+- **File Attachment Support:** `file_attachment` field type in all templates for photo/document workflows
+- **Dynamic Fields:** `dynamic_fields` component allows users to add ad-hoc fields without template selection
+- **Idempotent Seeding:** DataSeeder safely handles restarts without duplicate template creation
+
+### Files Modified/Created
+- ✅ `src/SiteDiary.Domain/Entities/DiaryTemplate.cs` — UPDATED (added RoleId, Role property)
+- ✅ `src/SiteDiary.Domain/Entities/Role.cs` — UPDATED (added DiaryTemplates collection)
+- ✅ `src/SiteDiary.Infrastructure/Data/Migrations/20260516082913_AddDiaryTemplateRoleFK.cs` — NEW
+- ✅ `src/SiteDiary.Infrastructure/Data/Migrations/20260516082913_AddDiaryTemplateRoleFK.Designer.cs` — NEW
+- ✅ `src/SiteDiary.Infrastructure/Data/ApplicationDbContext.cs` — UPDATED (HasOne/WithMany config)
+- ✅ `src/SiteDiary.Application/Features/DiaryTemplates/DiaryTemplateService.cs` — UPDATED (GetByUserRoleAsync)
+- ✅ `src/SiteDiary.Infrastructure/Data/DataSeeder.cs` — UPDATED (5 role-specific templates)
+- ✅ `src/SiteDiary.Tests/Integration/DataSeederTests.cs` — UPDATED (role template assertions)
+- ✅ `src/SiteDiary.Tests/Unit/Application/DiaryTemplateServiceTests.cs` — UPDATED (resolution logic)
+- ✅ `frontend/src/components/diary/DiaryCreateForm.tsx` — NEW
+- ✅ `frontend/src/test/diary/fieldRenderers.test.tsx` — UPDATED (file_attachment, dynamic_fields tests)
+- ✅ `frontend/vite.config.ts` — UPDATED (build optimizations)
+- ✅ `design/6-plan.md` — NEW (design specification)
+
+### Acceptance Criteria Met
+- ✅ R1: Five role-specific templates seeded (one per active role)
+- ✅ R2: Each template minimal-field set (role-relevant only)
+- ✅ R3: Templates renderable by existing form engine (no render logic changes)
+- ✅ R4: GetByUserRoleAsync resolves correct template for user's role
+- ✅ R5: Backward-compatible with existing diary entries (immutable snapshots)
+- ✅ R6: System-level fallback template (IsDefault=true) maintained
+- ✅ R7: Templates extensible (custom fields via fieldOverrides)
+- ✅ R8: Seeding idempotent (no double-seeding)
+- ✅ R9: All templates include file attachment field
+- ✅ R10: All templates include dynamic fields component
+- ✅ All TDD tests passing (160 total: 92 backend + 68 frontend)
+
+### Deferred Items (Future Phases)
+- File upload workflow & attachment storage (S3 / Blob Storage integration)
+- Diary entry edit & delete workflows
+- Advanced template customization UI (admin panel)
+- Real authentication & authorization (ASP.NET Core Identity + JWT)
+- Attachment preview and download handlers
+- Form validation error messaging & visual feedback refinement
+- Mobile-responsive form layout optimization
+
+### Next Steps
+1. Begin Phase 7: File Upload & Attachment Handling
+2. Integrate S3 or Azure Blob Storage for attachment persistence
+3. Implement file upload UI and progress tracking
+4. Add attachment preview and document chip rendering
+5. Integrate attachment workflow with diary creation form
+6. Follow up with real authentication, authorization, and production deployment
+
+---
+
 ## Notes
 - All projects use `int` for primary/foreign keys (no GUIDs) for performance
 - Database schema is ready for SQL Server integration
@@ -449,7 +577,9 @@
 - Diary field overrides stored as JSON in NVARCHAR(MAX) for flexibility
 - X-User-Id middleware provides multi-tenant user context
 - DataSeeder integration in Program.cs enables automated database initialization
-- Test suite comprehensive: 49 frontend tests + 74 backend tests + diary components
+- Test suite comprehensive: 68 frontend tests + 92 backend tests (Phase 6)
 - Diary timeline API returns immutable template snapshots for historical accuracy
 - DiaryLogCard component handles both template fields and ad-hoc payload fields gracefully
 - User Switcher is a dev-mode tool intentionally designed to be replaced by real authentication
+- Role-based templates enable tailored UX per job function
+- Dynamic field addition supports schema evolution without breaking stored entries

@@ -7,6 +7,7 @@ public interface IUnitOfWork
 {
     IRepository<ConstructionSite> Sites { get; }
     IRepository<User> Users { get; }
+    IRepository<UserRole> UserRoles { get; }
     IRepository<Diary> Diaries { get; }
     IRepository<DiaryTemplate> DiaryTemplates { get; }
     IRepository<Attachment> Attachments { get; }

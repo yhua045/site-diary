@@ -1,3 +1,4 @@
+import React from "react";
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { renderField, FIELD_RENDERERS } from '../../components/diary/fieldRenderers'
@@ -12,44 +13,44 @@ const makeDescriptor = (type: string, key = 'testKey', label = 'Test'): FieldDes
 
 describe('FIELD_RENDERERS', () => {
   it('renders text value as plain string', () => {
-    const { container } = render(FIELD_RENDERERS['text']('Hello', makeDescriptor('text')) as JSX.Element)
+    const { container } = render(FIELD_RENDERERS['text']('Hello', makeDescriptor('text')) as React.JSX.Element)
     expect(container).toHaveTextContent('Hello')
   })
 
   it('renders text with null as dash', () => {
-    const { container } = render(FIELD_RENDERERS['text'](null, makeDescriptor('text')) as JSX.Element)
+    const { container } = render(FIELD_RENDERERS['text'](null, makeDescriptor('text')) as React.JSX.Element)
     expect(container).toHaveTextContent('—')
   })
 
   it('renders number value', () => {
-    const { container } = render(FIELD_RENDERERS['number'](12, makeDescriptor('number')) as JSX.Element)
+    const { container } = render(FIELD_RENDERERS['number'](12, makeDescriptor('number')) as React.JSX.Element)
     expect(container).toHaveTextContent('12')
   })
 
   it('renders boolean true as Yes', () => {
-    const { container } = render(FIELD_RENDERERS['boolean'](true, makeDescriptor('boolean')) as JSX.Element)
+    const { container } = render(FIELD_RENDERERS['boolean'](true, makeDescriptor('boolean')) as React.JSX.Element)
     expect(container).toHaveTextContent('Yes')
   })
 
   it('renders boolean false as No', () => {
-    const { container } = render(FIELD_RENDERERS['boolean'](false, makeDescriptor('boolean')) as JSX.Element)
+    const { container } = render(FIELD_RENDERERS['boolean'](false, makeDescriptor('boolean')) as React.JSX.Element)
     expect(container).toHaveTextContent('No')
   })
 
   it('renders boolean null as dash', () => {
-    const { container } = render(FIELD_RENDERERS['boolean'](null, makeDescriptor('boolean')) as JSX.Element)
+    const { container } = render(FIELD_RENDERERS['boolean'](null, makeDescriptor('boolean')) as React.JSX.Element)
     expect(container).toHaveTextContent('—')
   })
 
   it('renders date value as locale string', () => {
-    const { container } = render(FIELD_RENDERERS['date']('2026-05-15', makeDescriptor('date')) as JSX.Element)
+    const { container } = render(FIELD_RENDERERS['date']('2026-05-15', makeDescriptor('date')) as React.JSX.Element)
     // Should contain at least part of the date (locale-dependent)
     expect(container.textContent).not.toBe('—')
     expect(container.textContent?.length).toBeGreaterThan(0)
   })
 
   it('renders date null as dash', () => {
-    const { container } = render(FIELD_RENDERERS['date'](null, makeDescriptor('date')) as JSX.Element)
+    const { container } = render(FIELD_RENDERERS['date'](null, makeDescriptor('date')) as React.JSX.Element)
     expect(container).toHaveTextContent('—')
   })
 
@@ -58,7 +59,7 @@ describe('FIELD_RENDERERS', () => {
       ...makeDescriptor('select'),
       options: [{ value: 'sunny', label: 'Sunny Day' }],
     }
-    const { container } = render(FIELD_RENDERERS['select']('sunny', descriptor) as JSX.Element)
+    const { container } = render(FIELD_RENDERERS['select']('sunny', descriptor) as React.JSX.Element)
     expect(container).toHaveTextContent('Sunny Day')
   })
 
@@ -67,7 +68,7 @@ describe('FIELD_RENDERERS', () => {
       ...makeDescriptor('select'),
       options: [{ value: 'sunny', label: 'Sunny' }],
     }
-    const { container } = render(FIELD_RENDERERS['select']('rainy', descriptor) as JSX.Element)
+    const { container } = render(FIELD_RENDERERS['select']('rainy', descriptor) as React.JSX.Element)
     expect(container).toHaveTextContent('rainy')
   })
 })

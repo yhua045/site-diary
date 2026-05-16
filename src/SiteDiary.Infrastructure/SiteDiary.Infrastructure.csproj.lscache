@@ -63,6 +63,8 @@ Data/
   20260516032539_AddDiaryFieldOverrides.Designer.cs
   20260516050407_AddDiaryPayloadAndTemplateSnapshot.cs
   20260516050407_AddDiaryPayloadAndTemplateSnapshot.Designer.cs
+  20260516082913_AddDiaryTemplateRoleFK.cs
+  20260516082913_AddDiaryTemplateRoleFK.Designer.cs
   ApplicationDbContextModelSnapshot.cs
 obj/Debug/net9.0/
  .NETCoreApp,Version=v9.0.AssemblyAttributes.cs

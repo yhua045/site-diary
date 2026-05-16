@@ -10,4 +10,5 @@ public class Role : BaseEntity
     // Navigation
     public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
     public ICollection<SiteUser> SiteUsers { get; set; } = new List<SiteUser>();
+    public ICollection<DiaryTemplate> DiaryTemplates { get; set; } = [];
 }
