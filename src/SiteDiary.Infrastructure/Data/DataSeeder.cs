@@ -78,7 +78,27 @@ public static class DataSeeder
         await context.Users.AddRangeAsync(users);
         await context.SaveChangesAsync();
 
-        // 4. Seed a default DiaryTemplate (used by GetByUserRoleAsync POC)
+        // 4. Seed SiteUser associations
+        // Assign first two users to site 1, remaining three users to site 2
+        var siteUsers = new List<SiteUser>();
+        for (int i = 0; i < users.Count; i++)
+        {
+            var user = users[i];
+            var site = i < 2 ? sites[0] : sites[1];
+            var primaryRole = user.UserRoles.First().RoleId;
+            
+            siteUsers.Add(new SiteUser
+            {
+                ConstructionSiteId = site.Id,
+                UserId = user.Id,
+                AssignedRoleId = primaryRole,
+                JoinedDate = DateOnly.FromDateTime(DateTime.UtcNow)
+            });
+        }
+        await context.Set<SiteUser>().AddRangeAsync(siteUsers);
+        await context.SaveChangesAsync();
+
+        // 5. Seed a default DiaryTemplate (used by GetByUserRoleAsync POC)
         var defaultTemplate = new DiaryTemplate
         {
             Name = "Site Daily Report",

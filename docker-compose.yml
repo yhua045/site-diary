@@ -10,5 +10,18 @@ services:
     volumes:
       - mssql-data:/var/opt/mssql
 
+  sitediary.web:
+    build:
+      context: .
+      dockerfile: src/SiteDiary.Web/Dockerfile
+    container_name: site-diary-web
+    depends_on:
+      - mssql
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Docker"
+      ASPNETCORE_URLS: "http://+:8080"
+    ports:
+      - "5167:8080"
+
 volumes:
   mssql-data:

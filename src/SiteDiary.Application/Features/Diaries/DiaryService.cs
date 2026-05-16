@@ -14,6 +14,23 @@ public class DiaryService(IUnitOfWork uow) : IDiaryService
     {
         PropertyNameCaseInsensitive = true,
     };
+
+    private static readonly JsonElement _emptyPayload =
+        JsonDocument.Parse("{}").RootElement.Clone();
+
+    public async Task<IReadOnlyList<DiaryTimelineEntryDto>> GetTimelineAsync(int siteId, CancellationToken ct = default)
+    {
+        var diaries = await uow.Diaries.Query()
+            .Include(d => d.Author).ThenInclude(u => u.UserRoles).ThenInclude(ur => ur.Role)
+            .Include(d => d.Attachments)
+            .Where(d => d.ConstructionSiteId == siteId && !d.IsArchived)
+            .OrderByDescending(d => d.Date)
+            .ThenByDescending(d => d.Id)
+            .ToListAsync(ct);
+
+        return diaries.Select(MapToTimelineEntry).ToList();
+    }
+
     public async Task<IReadOnlyList<DiaryDto>> GetBySiteIdAsync(int siteId, CancellationToken ct = default)
     {
         var diaries = await uow.Diaries.Query()
@@ -34,6 +51,41 @@ public class DiaryService(IUnitOfWork uow) : IDiaryService
 
     public async Task<DiaryDto> CreateAsync(int siteId, int authorUserId, CreateDiaryDto dto, CancellationToken ct = default)
     {
+        // Build template snapshot: look up the template's sections if a template is referenced
+        string? snapshotJson = null;
+        if (dto.DiaryTemplateId.HasValue)
+        {
+            var template = await uow.DiaryTemplates.Query()
+                .FirstOrDefaultAsync(t => t.Id == dto.DiaryTemplateId.Value && !t.IsArchived, ct);
+            if (template is not null)
+            {
+                var sections = DeserializeSections(template.Sections);
+                var overrides = dto.FieldOverrides;
+                var removedSet = overrides?.Removed.ToHashSet() ?? new HashSet<string>();
+
+                // Flatten template to FieldDescriptorDto list, applying overrides
+                var order = 1;
+                var descriptors = sections
+                    .SelectMany(s => s.Fields)
+                    .Where(f => !removedSet.Contains(f.Id))
+                    .Select(f => new FieldDescriptorDto(f.Id, f.Label, f.Type, order++))
+                    .ToList();
+
+                // Append ad-hoc added fields
+                if (overrides?.Added is { Count: > 0 } added)
+                {
+                    foreach (var f in added)
+                        descriptors.Add(new FieldDescriptorDto(f.Id, f.Label, f.Type, order++));
+                }
+
+                snapshotJson = JsonSerializer.Serialize(descriptors, _jsonOptions);
+            }
+        }
+
+        var payloadJson = dto.Payload is { Count: > 0 }
+            ? JsonSerializer.Serialize(dto.Payload, _jsonOptions)
+            : null;
+
         var diary = new Diary
         {
             ConstructionSiteId = siteId,
@@ -44,6 +96,8 @@ public class DiaryService(IUnitOfWork uow) : IDiaryService
             Date = DateOnly.FromDateTime(dto.Date.Date),
             IsPublished = dto.IsPublished,
             FieldOverrides = SerializeOverrides(dto.FieldOverrides),
+            Payload = payloadJson,
+            TemplateSnapshot = snapshotJson,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -86,6 +140,27 @@ public class DiaryService(IUnitOfWork uow) : IDiaryService
 
     // ── Mapping ───────────────────────────────────────────────────────────────
 
+    private static DiaryTimelineEntryDto MapToTimelineEntry(Diary d)
+    {
+        var authorName = $"{d.Author.FirstName} {d.Author.LastName}";
+        var authorRole = d.Author.UserRoles
+            .Where(ur => ur.IsActive)
+            .Select(ur => ur.Role?.Name)
+            .FirstOrDefault();
+
+        var payload = TryParseJsonElement(d.Payload) ?? _emptyPayload;
+        var snapshot = TryDeserializeSnapshot(d.TemplateSnapshot);
+        var attachments = d.Attachments
+            .Select(a => new AttachmentDto(a.Id, a.DiaryId, a.FileName, a.FileUrl, a.ContentType))
+            .ToList();
+
+        return new DiaryTimelineEntryDto(
+            d.Id, d.ConstructionSiteId, d.AuthorUserId,
+            authorName, authorRole,
+            d.Date, d.IsPublished,
+            payload, snapshot, attachments);
+    }
+
     private static DiaryDto MapToDto(Diary d) =>
         new(d.Id, d.ConstructionSiteId, d.AuthorUserId, d.Title, d.Content,
             new DateTimeOffset(d.Date.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero),
@@ -110,5 +185,30 @@ public class DiaryService(IUnitOfWork uow) : IDiaryService
     {
         if (overrides is null) return null;
         return JsonSerializer.Serialize(overrides, _jsonOptions);
+    }
+
+    private static IReadOnlyList<SectionDef> DeserializeSections(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return Array.Empty<SectionDef>();
+        return JsonSerializer.Deserialize<IReadOnlyList<SectionDef>>(json, _jsonOptions)
+               ?? Array.Empty<SectionDef>();
+    }
+
+    private static JsonElement? TryParseJsonElement(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return null;
+        try { return JsonDocument.Parse(json).RootElement.Clone(); }
+        catch { return null; }
+    }
+
+    private static IReadOnlyList<FieldDescriptorDto> TryDeserializeSnapshot(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return Array.Empty<FieldDescriptorDto>();
+        try
+        {
+            return JsonSerializer.Deserialize<IReadOnlyList<FieldDescriptorDto>>(json, _jsonOptions)
+                   ?? Array.Empty<FieldDescriptorDto>();
+        }
+        catch { return Array.Empty<FieldDescriptorDto>(); }
     }
 }

@@ -55,6 +55,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         {
             e.Property(x => x.Title).HasMaxLength(300).IsRequired();
             e.Property(x => x.FieldOverrides).HasColumnType("nvarchar(max)");
+            e.Property(x => x.Payload).HasColumnType("nvarchar(max)");
+            e.Property(x => x.TemplateSnapshot).HasColumnType("nvarchar(max)");
             e.HasIndex(x => x.ConstructionSiteId).HasDatabaseName("IX_Diaries_ConstructionSiteId");
             e.HasIndex(x => x.AuthorUserId).HasDatabaseName("IX_Diaries_AuthorUserId");
             e.HasIndex(x => x.Date).HasDatabaseName("IX_Diaries_Date");

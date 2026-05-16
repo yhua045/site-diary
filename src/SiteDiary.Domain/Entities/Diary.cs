@@ -15,6 +15,12 @@ public class Diary : BaseEntity
     /// <summary>JSON: { "removed": [], "added": [] } — per-diary field overrides relative to the base template.</summary>
     public string? FieldOverrides { get; set; }
 
+    /// <summary>JSON array of key-value pairs representing the actual field values submitted for this diary entry.</summary>
+    public string? Payload { get; set; }
+
+    /// <summary>JSON array of FieldDescriptorDto — snapshot of effective field descriptors at creation time. Used by the card renderer.</summary>
+    public string? TemplateSnapshot { get; set; }
+
     // Navigation
     public ConstructionSite ConstructionSite { get; set; } = null!;
     public User Author { get; set; } = null!;

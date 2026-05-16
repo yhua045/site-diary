@@ -36,6 +36,13 @@ public class DataSeederTests
 
         var usersCount = await context.Users.CountAsync();
         Assert.Equal(5, usersCount);
+
+        var siteUsers = await context.Set<SiteUser>().ToListAsync();
+        Assert.Equal(5, siteUsers.Count);
+        // Expect 2 users assigned to first site, 3 to second
+        var siteAssignments = siteUsers.GroupBy(su => su.ConstructionSiteId).Select(g => g.Count()).OrderBy(c => c).ToList();
+        Assert.Equal(2, siteAssignments[0]);
+        Assert.Equal(3, siteAssignments[1]);
     }
 
     [Fact]

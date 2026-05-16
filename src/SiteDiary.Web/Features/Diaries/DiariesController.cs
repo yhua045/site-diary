@@ -13,6 +13,10 @@ public class DiariesController(IDiaryService diaryService) : ControllerBase
     public async Task<ActionResult<IReadOnlyList<DiaryDto>>> GetAll(int siteId, CancellationToken ct) =>
         Ok(await diaryService.GetBySiteIdAsync(siteId, ct));
 
+    [HttpGet("timeline")]
+    public async Task<ActionResult<IReadOnlyList<DiaryTimelineEntryDto>>> GetTimeline(int siteId, CancellationToken ct) =>
+        Ok(await diaryService.GetTimelineAsync(siteId, ct));
+
     [HttpGet("{diaryId:int}")]
     public async Task<ActionResult<DiaryDetailDto>> GetById(int siteId, int diaryId, CancellationToken ct)
     {

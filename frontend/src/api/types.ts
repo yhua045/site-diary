@@ -44,6 +44,76 @@ export interface UpdateUserRequest {
   isActive: boolean
 }
 
+// ── Diary Template ────────────────────────────────────────────────────────────
+
+export interface SelectOption {
+  value: string
+  label: string
+}
+
+export interface FieldDef {
+  id: string
+  label: string
+  type: string
+  required: boolean
+  placeholder?: string
+  options?: string[]
+  min?: number
+  max?: number
+}
+
+export interface SectionDef {
+  id: string
+  label: string
+  fields: FieldDef[]
+}
+
+export interface DiaryTemplate {
+  id: number
+  name: string
+  sections: SectionDef[]
+}
+
+// ── Diary Timeline ────────────────────────────────────────────────────────────
+
+/**
+ * A single field descriptor embedded in the TemplateSnapshot of a saved diary entry.
+ * Used by the card renderer to format field values.
+ */
+export interface FieldDescriptor {
+  key: string
+  label: string
+  type: 'text' | 'number' | 'boolean' | 'date' | 'select' | string
+  displayOrder: number
+  options?: SelectOption[]
+}
+
+export interface AttachmentDto {
+  id: number
+  diaryId: number
+  fileName: string
+  fileUrl: string
+  contentType: string
+}
+
+/**
+ * Full timeline entry returned by GET /api/sites/{siteId}/diaries/timeline.
+ */
+export interface DiaryTimelineEntry {
+  id: number
+  constructionSiteId: number
+  authorUserId: number
+  authorName: string
+  authorRole?: string
+  date: string
+  isPublished: boolean
+  payload: Record<string, unknown>
+  templateSnapshot: FieldDescriptor[]
+  attachments: AttachmentDto[]
+}
+
+// ── Diary (legacy / mutation DTOs) ────────────────────────────────────────────
+
 export interface Diary {
   id: number
   constructionSiteId: number
@@ -58,13 +128,19 @@ export interface Diary {
   updatedAt: string
 }
 
+export interface FieldOverrides {
+  removed: string[]
+  added: FieldDef[]
+}
+
 export interface CreateDiaryRequest {
-  constructionSiteId: number
-  authorUserId: number
-  diaryTemplateId?: number
   title: string
   content?: string
   date: string
+  isPublished?: boolean
+  diaryTemplateId?: number
+  fieldOverrides?: FieldOverrides
+  payload?: Record<string, unknown>
 }
 
 export interface UpdateDiaryRequest {

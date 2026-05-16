@@ -178,6 +178,270 @@
 
 ---
 
+---
+
+## Phase 3: Diary UI Screens & Backend Timeline API ✅
+
+**Status:** Complete  
+**Date:** 16 May 2026
+
+### Completed Tasks
+
+#### Backend (Diary Timeline & Payload Storage)
+- ✅ Extended Diary entity:
+  - Added Payload property (NVARCHAR(MAX) JSON): stores mutable diary entry data
+  - Added TemplateSnapshot property (NVARCHAR(MAX) JSON array): immutable snapshot of template fields at entry time
+  - Enables per-diary field configuration and historical field tracking
+- ✅ Created EF Core migration:
+  - AddDiaryPayloadAndTemplateSnapshot: Adds both JSON columns to Diaries table
+  - Backward-compatible with existing schema
+- ✅ Enhanced DiaryService:
+  - Implemented GetTimelineAsync: Returns full diary timeline feed (newest first) with attachments and template snapshots
+  - Updated CreateDiaryDto with Payload field for structured entry data
+  - Updated DiaryTimelineEntryDto: Includes date, authorName, authorRole, payload, templateSnapshot, and attachments
+- ✅ Created DiaryTimelineServiceTests:
+  - Tests for timeline retrieval with correct ordering and attachment/snapshot inclusion
+  - Validates template snapshot immutability
+  - Tests pagination and filtering
+- ✅ Enhanced DiariesController:
+  - Added timeline endpoint for consuming diary feed
+
+#### Frontend (Diary Component Library & Timeline UI)
+- ✅ Created diary component library:
+  - **DiaryLogCard.tsx**: Renders individual diary entry with formatted date, author info, fields, images, and documents
+    - Displays template snapshot fields sorted by displayOrder
+    - Shows ad-hoc fields (payload fields not in snapshot)
+    - Renders inline images and document chips
+  - **fieldRenderers.tsx**: Type-safe field rendering based on FieldDescriptor
+    - Supports: text, number, date, boolean, select, multiselect field types
+    - Tailwind-styled with inline formatting for rich data display
+  - **DocChips.tsx**: Displays document attachments as interactive chips with file type icons
+  - **InlineImages.tsx**: Renders inline images from attachments with click handlers
+- ✅ Enhanced frontend API client:
+  - Updated diaries.ts with getTimeline() method for fetching diary feed
+  - Enhanced types.ts with DiaryTimelineEntry, DiaryTimelineEntryDto, FieldDescriptor, and related types
+  - Added DiaryPayload type for structured entry data
+- ✅ Added frontend test infrastructure:
+  - Created frontend/src/test/diary/ directory for component tests
+  - Setup React Testing Library integration
+  - Prepared test utilities for diary component testing
+- ✅ Updated package dependencies:
+  - Added necessary dev dependencies for component testing and type safety
+
+### Validation Results
+- ✅ **Linting Passed:** ESLint clean with zero errors
+- ✅ **TypeScript Compilation:** Successful (npx tsc --noEmit)
+- ✅ **Static Analysis:** All checks passed
+- ✅ **Backend Build:** Successful with clean migration
+- ✅ **Backend Tests:** 74/74 passed (existing test suite maintained)
+
+### Architecture Enhancements
+- **Immutable Template Snapshots:** JSON snapshot of template fields at diary entry time enables historical field tracking
+- **Mutable Payload Storage:** Separate JSON field for entry data allows flexible field updates per site/role
+- **Timeline Feed Pattern:** Optimized GetTimelineAsync returns sorted, paginated diary entries with all related data in single query
+- **Type-Safe Field Rendering:** FieldDescriptor + fieldRenderers provide flexible, extensible field display
+- **Attachment Integration:** DiaryLogCard seamlessly displays images and documents inline
+
+### Design & Documentation
+- ✅ Updated design/diary-app-screens.md with UI component specifications and interaction flows
+
+### Deferred Items (Future Phases)
+- Diary entry creation form component and workflow
+- Field-level and form-level validations with error messaging
+- File upload UI for attachments (images and documents)
+- Diary editing and deletion workflows
+- Advanced filtering, search, and export on timeline
+- Real-time updates and WebSocket integration for collaborative editing
+- Backend tests for timeline pagination and filtering
+
+### Next Steps
+1. Begin Phase 4: Diary Entry Creation & Form Management
+2. Implement dynamic form builder using TemplateSnapshot fields
+3. Add field validation and error handling UI
+4. Implement file upload workflow for attachments
+5. Add frontend integration tests for diary form interactions
+6. Follow up with authentication UI, authorization policies, and production deployment
+
+---
+
+## Phase 4: User Switcher (Dev-Mode Identity Simulation) ✅
+
+**Status:** Complete  
+**Date:** 16 May 2026  
+**Issue:** #5
+
+### Completed Tasks
+
+#### Frontend (User Switcher & API Integration)
+- ✅ Implemented `useUserList()` hook (`features/users/useUserList.ts`):
+  - Fetches all users from the API on component mount
+  - Filters out archived users client-side
+  - Returns `{ users, isLoading, error }` state
+  - Comprehensive error handling with user-friendly messages
+- ✅ Integrated user dropdown into DiaryScreen:
+  - Renders native `<select>` element bound to local `useState`
+  - Displays user list with first and last names
+  - Disabled state while users are loading
+  - Ephemeral selection (resets on page refresh — intentional for dev-mode)
+- ✅ Enhanced API integration for user-scoped requests:
+  - Added `userIdHeaders()` helper to conditionally include `X-User-Id` header
+  - Updated `diariesApi.getTimeline()` to accept optional `userId` parameter
+  - Updated `diariesApi.create()` to accept optional `userId` parameter
+  - Header is omitted when no user is selected (anonymous requests)
+- ✅ Implemented comprehensive TDD test suite:
+  - `useUserList.test.ts`: 4 tests covering hook behavior, filtering, and error handling
+  - `DiaryScreen.test.tsx`: 7 tests covering dropdown rendering, user selection, and API header passing
+  - All 49 frontend tests pass (including Phase 3 tests)
+  - Tests verify X-User-Id header is sent/omitted correctly
+
+### Validation Results
+- ✅ **Linting Passed:** ESLint clean with zero errors
+- ✅ **TypeScript Compilation:** Successful (npx tsc --noEmit)
+- ✅ **Test Suite:** 49/49 tests passed, 0 failed (Vitest)
+  - 4 tests for useUserList hook
+  - 7 tests for DiaryScreen component
+  - 38 tests from Phase 3 (maintained)
+- ✅ **Static Analysis:** All checks passed
+
+### Architecture & Design Decisions
+- **Localized State:** User selection stored in DiaryScreen component state only (no Context, localStorage, or global state)
+- **Header Injection Pattern:** Per-call header option rather than global interceptor for flexibility and explicit control
+- **Client-Side Filtering:** Archived users filtered after API fetch to reduce backend complexity
+- **Ephemeral Selection:** Intentional reset on page refresh to emphasize dev-mode placeholder nature
+- **No Backend Changes:** Existing XUserIdMiddleware already supports the `X-User-Id` header
+- **TDD Approach:** All acceptance criteria from design plan verified via tests
+
+### Files Modified/Created
+- ✅ `frontend/src/features/users/useUserList.ts` — NEW
+- ✅ `frontend/src/features/diaries/DiaryScreen.tsx` — UPDATED
+- ✅ `frontend/src/api/diaries.ts` — UPDATED (added userId options)
+- ✅ `frontend/src/test/users/useUserList.test.ts` — NEW
+- ✅ `frontend/src/test/diary/DiaryScreen.test.tsx` — UPDATED
+
+### Acceptance Criteria Met
+- ✅ User dropdown renders on Diary screen (not in app header)
+- ✅ Dropdown fetches user list from API on screen load
+- ✅ Selected user's ID passed as `X-User-Id` header in API requests
+- ✅ No Context, localStorage, or global AppShell integration
+- ✅ `X-User-Id` header absent when no user is selected
+- ✅ All TDD tests pass (4 hook tests + 7 component tests)
+
+### Deferred Items (Future Phases)
+- Real authentication & authorization (ASP.NET Core Identity + JWT)
+- Authentication UI (login screen, session management)
+- User role-based access control and permissions
+- Persistent user context across sessions
+- User profile management
+- Backend validation of user context
+
+### Next Steps
+1. Begin Phase 5: Sites Screen, React Router, useSitesByUser hook
+2. Implement role-based authorization policies
+3. Add user context to audit trail
+4. Follow up with real authentication and JWT bearer tokens
+5. Implement comprehensive API error handling and validation
+
+---
+
+## Phase 5: Sites Screen, React Router & useSitesByUser Hook ✅
+
+**Status:** Complete  
+**Date:** 16 May 2026  
+**Issue:** #7
+
+### Completed Tasks
+
+#### Frontend (Sites Screen & Routing)
+- ✅ Implemented React Router v7 configuration (`App.tsx`):
+  - Wrapped application in `<BrowserRouter>` + `<Routes>`
+  - Route 1: `/` → SitesScreen (app entry point)
+  - Route 2: `/sites/:siteId/diary` → DiaryScreen (diary timeline with site context)
+  - Removed hardcoded `siteId=1` from App shell
+- ✅ Created `SitesScreen.tsx` component:
+  - Renders user dropdown populated via `useUserList()` hook
+  - Renders site dropdown populated via `useSitesByUser(userId)` hook
+  - View Diary button disabled until both user and site selected
+  - Navigation to `/sites/${selectedSite.id}/diary` with router state: `{ siteName, userId, userName }`
+  - Graceful loading and error states for both user and site fetches
+- ✅ Implemented `useSitesByUser.ts` hook:
+  - Fetches sites for a selected user via `GET /api/users/{userId}/sites`
+  - Returns `{ sites, isLoading, error }` state
+  - Only triggers fetch when userId is non-null (conditional dependency)
+  - Comprehensive error handling with user-friendly messages
+  - Filters out archived sites client-side
+- ✅ Enhanced `DiaryScreen.tsx`:
+  - Updated to read `siteId` from `useParams<{ siteId: string }>()`
+  - Reads user context from `useLocation().state` (passed from SitesScreen)
+  - Pre-selects user in internal dropdown filter when userId provided via router state
+  - Removed dependency on hardcoded siteId
+  - Maintains all existing diary timeline and user-filter functionality
+- ✅ Enhanced frontend API client (`api/users.ts`):
+  - Added `getSitesByUser(userId: number)` method for site lookup
+  - Returns list of ConstructionSite objects filtered to user's assigned sites
+- ✅ Implemented comprehensive TDD test suite:
+  - `SitesScreen.test.tsx`: 8 tests covering component rendering, dropdown interactions, navigation, and loading states
+  - `useSitesByUser.test.ts`: 5 tests covering hook behavior, conditional fetching, filtering, and error handling
+  - Total frontend tests: 62/62 passing (49 from Phase 4 + 13 new tests)
+  - Tests verify correct user-site association and router state passing
+
+### Validation Results
+- ✅ **Linting Passed:** ESLint clean with zero errors (1 unused variable fixed in DiaryScreen)
+- ✅ **TypeScript Compilation:** Successful (npx tsc --noEmit)
+- ✅ **Test Suite:** 62/62 tests passed, 0 failed (Vitest)
+  - 8 tests for SitesScreen component
+  - 5 tests for useSitesByUser hook
+  - 49 tests from Phase 4 (maintained)
+- ✅ **Static Analysis:** All checks passed
+
+### Architecture & Design Decisions
+- **Router-Based Navigation:** React Router v7 provides clean URL-based site context management
+- **Conditional Hook Fetching:** `useSitesByUser` only fetches when userId is non-null, preventing unnecessary API calls
+- **Router State Pattern:** Passes user context (`userId`, `userName`, `siteName`) through React Router state for seamless UX
+- **Client-Side Filtering:** Archived sites filtered after API fetch, reducing backend query complexity
+- **Sequential Dropdowns:** User selection triggers site list fetch, following intuitive UX flow
+- **Backward Navigation:** Browser back button returns from DiaryScreen to SitesScreen naturally via React Router
+- **TDD Verification:** All R1-R8 requirements from design plan verified via comprehensive test suite
+
+### Files Modified/Created
+- ✅ `frontend/src/App.tsx` — UPDATED (added BrowserRouter + Routes)
+- ✅ `frontend/src/features/sites/SitesScreen.tsx` — NEW
+- ✅ `frontend/src/features/sites/useSitesByUser.ts` — NEW
+- ✅ `frontend/src/features/diaries/DiaryScreen.tsx` — UPDATED (router integration)
+- ✅ `frontend/src/api/users.ts` — UPDATED (added getSitesByUser method)
+- ✅ `frontend/src/test/sites/SitesScreen.test.tsx` — NEW
+- ✅ `frontend/src/test/sites/useSitesByUser.test.ts` — NEW
+
+### Acceptance Criteria Met
+- ✅ R1: Sites screen is app entry point (`/`)
+- ✅ R2: User dropdown populated from `GET /api/users`
+- ✅ R3: User selection triggers `GET /api/users/{userId}/sites`
+- ✅ R4: View Diary button disabled until site selected
+- ✅ R5: View Diary navigates to `/sites/:siteId/diary` with router state
+- ✅ R6: DiaryScreen reads siteId from URL param and user context from router state
+- ✅ R7: DiaryScreen pre-selects user in internal dropdown from router state
+- ✅ R8: Browser back button returns to Sites screen
+- ✅ All TDD tests passing (62/62)
+
+### Deferred Items (Future Phases)
+- Real authentication & authorization with JWT bearer tokens
+- Session persistence across browser refresh
+- Bookmarkable diary URLs with site context preserved
+- Back button history navigation polish
+- Mobile-optimized responsive layout for sites/diary screens
+- Advanced site filtering (by location, status, project name)
+- Site favorites or recently-viewed sites
+- Multi-select sites for bulk operations
+
+### Next Steps
+1. Begin Phase 6: Diary Entry Creation Form & Field Validation
+2. Implement dynamic form builder using TemplateSnapshot fields
+3. Add field-level and form-level validations with error messaging
+4. Implement file upload workflow for attachments
+5. Add frontend integration tests for diary form interactions
+6. Follow up with real authentication, authorization policies, and production deployment
+
+---
+
 ## Notes
 - All projects use `int` for primary/foreign keys (no GUIDs) for performance
 - Database schema is ready for SQL Server integration
@@ -185,5 +449,7 @@
 - Diary field overrides stored as JSON in NVARCHAR(MAX) for flexibility
 - X-User-Id middleware provides multi-tenant user context
 - DataSeeder integration in Program.cs enables automated database initialization
-- Test suite comprehensive: 74 backend tests + frontend test infrastructure
-- Ready for Phase 3 frontend development
+- Test suite comprehensive: 49 frontend tests + 74 backend tests + diary components
+- Diary timeline API returns immutable template snapshots for historical accuracy
+- DiaryLogCard component handles both template fields and ad-hoc payload fields gracefully
+- User Switcher is a dev-mode tool intentionally designed to be replaced by real authentication

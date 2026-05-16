@@ -66,6 +66,7 @@ Unit/Application/
  AttachmentServiceTests.cs
  DiaryServiceV2Tests_InMemory.cs
  DiaryTemplateServiceTests.cs
+ DiaryTimelineServiceTests.cs
  SiteServiceTests.cs
 Unit/
  Domain/EntityTests.cs

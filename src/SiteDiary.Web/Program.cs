@@ -52,7 +52,7 @@ builder.Services.AddCors(o =>
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Docker")
 {
     using (var scope = app.Services.CreateScope())
     {
