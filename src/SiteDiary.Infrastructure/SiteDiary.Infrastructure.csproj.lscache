@@ -76,6 +76,7 @@ Repositories/
 Services/
  AuditService.cs
  LocalStorageService.cs
+ SiteAuthorizationService.cs
 
 [metadataReferences]
 ../

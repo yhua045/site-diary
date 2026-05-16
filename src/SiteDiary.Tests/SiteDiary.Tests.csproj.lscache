@@ -58,6 +58,7 @@ TemporaryDependencyNodeTargetIdentifier=net9.0
 Integration/
  DataSeederTests.cs
  RepositoryTests.cs
+ SiteAuthorizationIntegrationTests.cs
 obj/Debug/net9.0/
  .NETCoreApp,Version=v9.0.AssemblyAttributes.cs
  SiteDiary.Tests.AssemblyInfo.cs
@@ -67,12 +68,16 @@ Unit/Application/
  DiaryServiceV2Tests_InMemory.cs
  DiaryTemplateServiceTests.cs
  DiaryTimelineServiceTests.cs
+ SiteAuthorizationServiceTests.cs
  SiteServiceTests.cs
 Unit/
  Domain/EntityTests.cs
  Web/
   DiaryTemplatesControllerTests.cs
-  Middleware/XUserIdMiddlewareTests.cs
+  Middleware/
+   RequestContextExtractionMiddlewareTests.cs
+   ResourceAuthorizationMiddlewareTests.cs
+   XUserIdMiddlewareTests.cs
   UsersControllerTests.cs
 UnitTest1.cs
 

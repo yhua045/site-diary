@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using SiteDiary.Application.DTOs;
 using SiteDiary.Application.Features.DiaryTemplates;
 using SiteDiary.Application.Interfaces;
+using SiteDiary.Web.Middleware;
 
 namespace SiteDiary.Web.Controllers.Api;
 
@@ -13,6 +14,7 @@ public class UsersController(
     IDiaryTemplateService templateService) : ControllerBase
 {
     [HttpGet]
+    [SkipResourceAuthorization]
     public async Task<ActionResult<IReadOnlyList<UserDto>>> GetAll(CancellationToken ct) =>
         Ok(await userService.GetAllAsync(ct));
 

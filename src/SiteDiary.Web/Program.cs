@@ -13,13 +13,20 @@ using SiteDiary.Web.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
-await EnsureDatabaseExistsAsync(builder.Configuration.GetConnectionString("DefaultConnection"));
+// Only attempt to ensure DB exists outside of test environments
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    await EnsureDatabaseExistsAsync(builder.Configuration.GetConnectionString("DefaultConnection"));
+}
 
 // ── Database ──────────────────────────────────────────────────────────────────
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        sql => sql.MigrationsAssembly("SiteDiary.Infrastructure")));
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        options.UseSqlServer(
+            builder.Configuration.GetConnectionString("DefaultConnection"),
+            sql => sql.MigrationsAssembly("SiteDiary.Infrastructure")));
+}
 
 // ── Repositories & Unit of Work ───────────────────────────────────────────────
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -38,6 +45,10 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IDiaryService, DiaryService>();
 builder.Services.AddScoped<IAttachmentService, AttachmentService>();
 builder.Services.AddScoped<IDiaryTemplateService, DiaryTemplateService>();
+
+// ── Security Context & Authorization ─────────────────────────────────────────
+builder.Services.AddScoped<IRequestSecurityContext, RequestSecurityContext>();
+builder.Services.AddScoped<ISiteAuthorizationService, SiteAuthorizationService>();
 
 // ── MVC + OpenAPI ─────────────────────────────────────────────────────────────
 builder.Services.AddControllers();
@@ -68,7 +79,9 @@ if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Docke
 app.UseHttpsRedirection();
 
 // ── Middleware ────────────────────────────────────────────────────────────────
-app.UseMiddleware<XUserIdMiddleware>();  // before MapControllers
+app.UseRouting();                                          // explicit — ensures RouteValues populated
+app.UseMiddleware<RequestContextExtractionMiddleware>();   // replaces XUserIdMiddleware
+app.UseMiddleware<ResourceAuthorizationMiddleware>();      // enforces auth rules
 app.MapControllers();
 
 // Serve React build from wwwroot (production)

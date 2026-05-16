@@ -63,7 +63,11 @@ Features/
 Middleware/
  HttpContextExtensions.cs
  HttpContextKeys.cs
- XUserIdMiddleware.cs
+ IRequestSecurityContext.cs
+ RequestContextExtractionMiddleware.cs
+ RequestSecurityContext.cs
+ ResourceAuthorizationMiddleware.cs
+ SkipResourceAuthorizationAttribute.cs
 obj/Debug/net9.0/
  .NETCoreApp,Version=v9.0.AssemblyAttributes.cs
  SiteDiary.Web.AssemblyInfo.cs

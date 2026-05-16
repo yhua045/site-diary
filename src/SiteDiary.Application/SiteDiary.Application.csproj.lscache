@@ -71,6 +71,7 @@ Features/DiaryTemplates/
  IDiaryTemplateService.cs
  SectionDef.cs
 Interfaces/
+ ISiteAuthorizationService.cs
  ISiteService.cs
  IUserService.cs
 obj/Debug/net9.0/
