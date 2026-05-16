@@ -120,7 +120,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             e.HasIndex(x => x.ChangedByUserId).HasDatabaseName("IX_AuditHistories_ChangedByUserId");
             e.HasIndex(x => x.Timestamp).HasDatabaseName("IX_AuditHistories_Timestamp");
             e.HasOne(x => x.ChangedBy).WithMany()
-                .HasForeignKey(x => x.ChangedByUserId).OnDelete(DeleteBehavior.Restrict);
+                .HasForeignKey(x => x.ChangedByUserId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         // ── Attachment ────────────────────────────────────────────────────

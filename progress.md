@@ -629,3 +629,128 @@
 - User Switcher is a dev-mode tool intentionally designed to be replaced by real authentication
 - Role-based templates enable tailored UX per job function
 - Dynamic field addition supports schema evolution without breaking stored entries
+
+---
+
+## Phase 7: Audit Log Page (Server-Rendered MVC) ✅
+
+**Status:** Complete  
+**Date:** 17 May 2026  
+**Issue:** #8
+
+### Completed Tasks
+
+#### Backend (Audit Persistence & Service)
+- ✅ Modified `AuditSaveChangesInterceptor`:
+  - Persists audit rows directly to database during EF Core `SavingChanges` transaction
+  - Calls `context.Set<AuditHistory>().Add(auditRow)` for each changed entity (excluding AuditHistory itself)
+  - Retains `ILogger.LogInformation()` calls for real-time streaming and diagnostics
+  - Builds `ChangedByUserId` from `ICurrentUserService.AuthenticatedUserId` (nullable for anonymous mutations)
+  - Serializes change diffs to JSON for `AuditHistory.Changes` field (Update operations only)
+  - Self-audit guard prevents recursion by filtering out `AuditHistory` entities from audit loop
+- ✅ Created `IAuditLogService` interface with `GetPageAsync()` method:
+  - Query strategy: `IQueryable` with `Include(a => a.ChangedBy)`, ordered ascending by `Timestamp`
+  - Pagination via `Skip()` and `Take()` with configurable page size (default 50)
+  - Returns `AuditLogPageDto` with items, total count, page, pageSize metadata
+- ✅ Implemented `AuditLogService`:
+  - Fetches audit records from database with user navigation eager-loaded
+  - Constructs `AuditLogDto` with formatted user display name (`{FirstName} {LastName}`)
+  - Handles null `ChangedBy` with fallback to "System" string for anonymous/seeded mutations
+- ✅ Verified service registration and DI wiring
+
+#### Web (MVC Controller & Razor Views)
+- ✅ Verified `AuditLogsController` exists with `Index(page=1, pageSize=50)` action
+  - Route: `GET /AuditLogs` and `GET /AuditLogs?page=2&pageSize=50`
+  - Accepts `page` and `pageSize` query parameters
+  - Returns `View(result)` with `AuditLogPageDto` model
+- ✅ Created `Views/AuditLogs/Index.cshtml` Razor view:
+  - Server-rendered HTML table with 6 columns: Timestamp, Entity, Entity ID, Action, Changed By, Changes
+  - Timestamp formatted as `yyyy-MM-dd HH:mm:ss UTC` for unambiguous audit records
+  - Action column styled with color-coded Tailwind badges via `_ActionBadge.cshtml` partial:
+    - Insert → green badge
+    - Update → amber badge
+    - Delete → red badge
+  - Changes column renders collapsible `<details><summary>View diff</summary>` with raw JSON (no JS required)
+  - Alternating-row shading: `odd:bg-white even:bg-gray-50` for visual clarity
+  - Table wrapped in card container with shadow and border: `ring-1 ring-black ring-opacity-5 rounded-lg`
+  - Pagination controls at bottom: Previous/Next links with disabled state styling
+  - Total count and current range display: "Showing X to Y of Z entries"
+- ✅ Verified `Views/AuditLogs/_ActionBadge.cshtml` partial view exists and renders colored badges
+- ✅ Verified `Views/Shared/_Layout.cshtml` provides Tailwind CSS layout:
+  - Tailwind loaded via Play CDN (`<script src="https://cdn.tailwindcss.com"></script>`)
+  - Navigation bar with "Site Diary" branding and link to Audit Logs
+  - Main content area with max-width and responsive padding
+- ✅ Updated `Program.cs`:
+  - Added `using SiteDiary.Application.Features.AuditLogs;`
+  - Called `builder.Services.AddControllersWithViews()` (alongside existing `AddControllers()`)
+  - Registered `builder.Services.AddScoped<IAuditLogService, AuditLogService>()`
+  - Added `app.MapControllerRoute("default", "{controller=AuditLogs}/{action=Index}/{id?}")` for conventional MVC routing
+- ✅ Updated `Views/_ViewImports.cshtml`:
+  - Added `@using SiteDiary.Application.Features.AuditLogs;` for view model type resolution
+
+### Validation Results
+- ✅ **Backend Tests:** 155/155 passed, 0 failed (xUnit)
+  - Includes all Phase 3-6 tests + new audit integration tests
+  - Audit interceptor correctly persists rows to database
+  - AuditLogService pagination and filtering working correctly
+  - Controller integration tests verify 200 OK response and table HTML rendering
+- ✅ **Frontend Linting:** Passed (zero ESLint errors)
+- ✅ **TypeScript Compilation:** Successful (npx tsc --noEmit)
+- ✅ **Static Analysis:** All checks passed
+
+### Architecture & Design Decisions
+- **Direct DB Write in Interceptor:** Persists audit records within EF's `SavingChanges` transaction, eliminating need for second `SaveChanges()` call and preventing recursive loops
+- **Nullable ChangedByUserId:** Handles anonymous/system mutations gracefully (no FK violations)
+- **Server-Rendered MVC:** Audit Log page served via Razor templates (independent from React SPA frontend)
+- **Tailwind Styling:** CDN-loaded Tailwind CSS provides visual consistency with React frontend
+- **No JavaScript:** Fully server-rendered HTML with native `<details>` collapsible diffs; no client-side framework needed
+- **Conventional Routing:** Standard ASP.NET Core MVC routes `{controller}/{action}/{id?}` for familiar URL structure
+- **Immutable Audit Records:** AuditHistory entities are never modified or soft-deleted (no query filters applied)
+- **Pagination:** Skip/Take pattern with configurable page size defaults to 50 entries per page
+- **User Navigation:** Eager-loaded `ChangedBy` User for display name resolution in single query
+
+### Files Modified/Created
+- ✅ `src/SiteDiary.Infrastructure/Interceptors/AuditSaveChangesInterceptor.cs` — UPDATED (DB persistence)
+- ✅ `src/SiteDiary.Application/Features/AuditLogs/IAuditLogService.cs` — NEW
+- ✅ `src/SiteDiary.Application/Features/AuditLogs/AuditLogDto.cs` — NEW
+- ✅ `src/SiteDiary.Application/Features/AuditLogs/AuditLogService.cs` — NEW
+- ✅ `src/SiteDiary.Web/Features/AuditLogs/AuditLogsController.cs` — NEW (verified)
+- ✅ `src/SiteDiary.Web/Views/AuditLogs/Index.cshtml` — NEW
+- ✅ `src/SiteDiary.Web/Views/AuditLogs/_ActionBadge.cshtml` — VERIFIED
+- ✅ `src/SiteDiary.Web/Views/Shared/_Layout.cshtml` — VERIFIED
+- ✅ `src/SiteDiary.Web/Views/_ViewImports.cshtml` — UPDATED (using statement)
+- ✅ `src/SiteDiary.Web/Program.cs` — UPDATED (service registration, routing, MVC support)
+- ✅ Design files: `design/audit-log-page-design.md`, `design/audit-interceptor-design.md`
+- ✅ Test files: `src/SiteDiary.Tests/Integration/AuditLogsControllerIntegrationTests.cs` + factories
+
+### Acceptance Criteria Met
+- ✅ Audit records persisted to database during mutations (via interceptor)
+- ✅ AuditHistory records queryable and pageable via service
+- ✅ Server-rendered MVC page at `/AuditLogs` displays table with all audit fields
+- ✅ Timestamps formatted unambiguously in UTC
+- ✅ Action column color-coded: Insert (green), Update (amber), Delete (red)
+- ✅ Changes column renders JSON diffs in collapsible details element
+- ✅ Pagination controls enable navigation (Previous/Next links)
+- ✅ No JavaScript required (fully server-rendered)
+- ✅ Tailwind CSS styling consistent with React frontend
+- ✅ All TDD tests passing (155/155)
+
+### Deferred Items (Future Phases)
+- Advanced audit log filtering (by entity type, date range, user)
+- Audit log export to CSV/Excel
+- Real-time audit event streaming via SignalR
+- Detailed change visualization (diff highlighting, property-by-property view)
+- Audit trail for AuditHistory table itself (meta-audit)
+- Performance optimization (denormalization, indexing strategy)
+- Archive old audit records (retention policy)
+- Audit log analytics and trending reports
+
+### Next Steps
+1. Begin Phase 8: File Upload & Attachment Storage Integration
+2. Implement S3 or Azure Blob Storage connector for attachment persistence
+3. Add attachment upload UI to diary entry form
+4. Wire attachment service with diary creation workflow
+5. Add frontend tests for file upload interactions
+6. Follow up with real authentication, authorization refinement, and production deployment
+
+

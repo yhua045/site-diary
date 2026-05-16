@@ -1,6 +1,7 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using SiteDiary.Application.Features.Attachments;
+using SiteDiary.Application.Features.AuditLogs;
 using SiteDiary.Application.Features.Diaries;
 using SiteDiary.Application.Features.DiaryTemplates;
 using SiteDiary.Application.Interfaces;
@@ -9,7 +10,9 @@ using SiteDiary.Domain.Interfaces;
 using SiteDiary.Infrastructure.Data;
 using SiteDiary.Infrastructure.Repositories;
 using SiteDiary.Infrastructure.Services;
+using SiteDiary.Infrastructure.Interceptors;
 using SiteDiary.Web.Middleware;
+using SiteDiary.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,13 +22,19 @@ if (!builder.Environment.IsEnvironment("Testing"))
     await EnsureDatabaseExistsAsync(builder.Configuration.GetConnectionString("DefaultConnection"));
 }
 
+// ── Audit Infrastructure (Issue #7) ─────────────────────────────────────────
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<AuditSaveChangesInterceptor>();
+
 // ── Database ──────────────────────────────────────────────────────────────────
 if (!builder.Environment.IsEnvironment("Testing"))
 {
-    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    builder.Services.AddDbContext<ApplicationDbContext>((sp, options) =>
         options.UseSqlServer(
             builder.Configuration.GetConnectionString("DefaultConnection"),
-            sql => sql.MigrationsAssembly("SiteDiary.Infrastructure")));
+            sql => sql.MigrationsAssembly("SiteDiary.Infrastructure"))
+               .AddInterceptors(sp.GetRequiredService<AuditSaveChangesInterceptor>()));
 }
 
 // ── Repositories & Unit of Work ───────────────────────────────────────────────
@@ -46,12 +55,16 @@ builder.Services.AddScoped<IDiaryService, DiaryService>();
 builder.Services.AddScoped<IAttachmentService, AttachmentService>();
 builder.Services.AddScoped<IDiaryTemplateService, DiaryTemplateService>();
 
+// ── Audit Log Service (Issue #7) ──────────────────────────────────────────────
+builder.Services.AddScoped<IAuditLogService, AuditLogService>();
+
 // ── Security Context & Authorization ─────────────────────────────────────────
 builder.Services.AddScoped<IRequestSecurityContext, RequestSecurityContext>();
 builder.Services.AddScoped<ISiteAuthorizationService, SiteAuthorizationService>();
 
 // ── MVC + OpenAPI ─────────────────────────────────────────────────────────────
 builder.Services.AddControllers();
+builder.Services.AddControllersWithViews();  // Enable Razor views for MVC controllers
 builder.Services.AddOpenApi();
 
 // ── CORS for React dev server ─────────────────────────────────────────────────
@@ -83,6 +96,9 @@ app.UseRouting();                                          // explicit — ensur
 app.UseMiddleware<RequestContextExtractionMiddleware>();   // replaces XUserIdMiddleware
 app.UseMiddleware<ResourceAuthorizationMiddleware>();      // enforces auth rules
 app.MapControllers();
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=AuditLogs}/{action=Index}/{id?}");  // MVC controller routing for Audit Logs, etc.
 
 // Serve React build from wwwroot (production)
 app.UseDefaultFiles();
