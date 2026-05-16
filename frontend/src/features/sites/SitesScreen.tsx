@@ -17,7 +17,13 @@ export function SitesScreen() {
 
   function handleUserChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const id = Number(e.target.value)
-    setSelectedUser(id ? (users.find(u => u.id === id) ?? null) : null)
+    if (id) {
+      localStorage.setItem('selectedUserId', String(id))
+      setSelectedUser(users.find(u => u.id === id) ?? null)
+    } else {
+      localStorage.removeItem('selectedUserId')
+      setSelectedUser(null)
+    }
     setSelectedSite(null)
   }
 

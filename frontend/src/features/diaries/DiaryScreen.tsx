@@ -28,6 +28,7 @@ export function DiaryScreen() {
   // Pre-select the user passed from the Sites screen via router state
   useEffect(() => {
     if (userId && users.length > 0) {
+      localStorage.setItem('selectedUserId', String(userId))
       setSelectedUser(users.find(u => u.id === userId) ?? null)
     }
   }, [userId, users])
@@ -36,7 +37,7 @@ export function DiaryScreen() {
   useEffect(() => {
     setTimelineLoading(true)
     diariesApi
-      .getTimeline(siteId, { userId: selectedUser?.id })
+      .getTimeline(siteId)
       .then(setEntries)
       .catch(() => setEntries([]))
       .finally(() => setTimelineLoading(false))
@@ -44,7 +45,13 @@ export function DiaryScreen() {
 
   function handleUserChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const id = e.target.value
-    setSelectedUser(id ? (users.find(u => u.id === Number(id)) ?? null) : null)
+    if (id) {
+      localStorage.setItem('selectedUserId', id)
+      setSelectedUser(users.find(u => u.id === Number(id)) ?? null)
+    } else {
+      localStorage.removeItem('selectedUserId')
+      setSelectedUser(null)
+    }
   }
 
   async function handleOpenCreate() {
@@ -70,8 +77,7 @@ export function DiaryScreen() {
           diaryTemplateId: template.id,
           payload: data.payload,
           fieldOverrides: data.fieldOverrides,
-        },
-        { userId: selectedUser?.id },
+        }
       )
       
       if (data.files && data.files.length > 0) {
@@ -79,7 +85,7 @@ export function DiaryScreen() {
       }
 
       setShowCreate(false)
-      const updated = await diariesApi.getTimeline(siteId, { userId: selectedUser?.id })
+      const updated = await diariesApi.getTimeline(siteId)
       setEntries(updated)
     } catch {
       // submission errors are silent for now; a toast can be wired in later

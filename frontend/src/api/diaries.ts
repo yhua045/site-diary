@@ -1,17 +1,11 @@
 import api from './client'
 import type { Diary, DiaryTimelineEntry, CreateDiaryRequest, UpdateDiaryRequest, AttachmentDto } from './types'
 
-function userIdHeaders(userId?: number): Record<string, string> {
-  return userId !== undefined ? { 'X-User-Id': String(userId) } : {}
-}
-
 export const diariesApi = {
   // Timeline (Phase 3) — full card data incl. attachments and template snapshots
-  getTimeline: (siteId: number, options?: { userId?: number }) =>
+  getTimeline: (siteId: number) =>
     api
-      .get<DiaryTimelineEntry[]>(`/sites/${siteId}/diaries/timeline`, {
-        headers: userIdHeaders(options?.userId),
-      })
+      .get<DiaryTimelineEntry[]>(`/sites/${siteId}/diaries/timeline`)
       .then(r => r.data),
 
   // Legacy list (lean DTOs)
@@ -21,11 +15,9 @@ export const diariesApi = {
   getById: (siteId: number, id: number) =>
     api.get<Diary>(`/sites/${siteId}/diaries/${id}`).then(r => r.data),
 
-  create: (siteId: number, data: CreateDiaryRequest, options?: { userId?: number }) =>
+  create: (siteId: number, data: CreateDiaryRequest) =>
     api
-      .post<Diary>(`/sites/${siteId}/diaries`, data, {
-        headers: userIdHeaders(options?.userId),
-      })
+      .post<Diary>(`/sites/${siteId}/diaries`, data)
       .then(r => r.data),
 
   update: (siteId: number, id: number, data: UpdateDiaryRequest) =>

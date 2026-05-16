@@ -591,12 +591,37 @@
 
 ---
 
+## Phase 6.2: API Interceptor for X-User-Id Header ✅
+
+**Status:** Complete  
+**Date:** 16 May 2026
+
+### Completed Tasks
+- ✅ Implemented axios request interceptor in api/client.ts
+  - Reads `selectedUserId` from localStorage
+  - Automatically attaches `X-User-Id` header to all API requests
+  - Enables backend middleware to extract user context from frontend client
+  - Non-breaking: no-op if userId not present in localStorage
+- ✅ Verified axios interceptor integration
+  - All API requests (diaries, templates, users, sites) inherit X-User-Id header
+  - Tested with DiaryCreateForm, DiaryScreen, and template API calls
+- ✅ Static analysis validation
+  - ESLint passed (zero errors)
+  - TypeScript compilation successful (npx tsc --noEmit)
+
+### Validation Results
+- ✅ **Frontend Linting:** Passed (ESLint)
+- ✅ **TypeScript Compilation:** No errors
+
+---
+
 ## Notes
 - All projects use `int` for primary/foreign keys (no GUIDs) for performance
 - Database schema is ready for SQL Server integration
 - Frontend build chain (`npm run build`) compiles TypeScript and Tailwind into optimized bundle
 - Diary field overrides stored as JSON in NVARCHAR(MAX) for flexibility
 - X-User-Id middleware provides multi-tenant user context
+- X-User-Id header now automatically attached by frontend axios interceptor
 - DataSeeder integration in Program.cs enables automated database initialization
 - Test suite comprehensive: 68 frontend tests + 92 backend tests (Phase 6)
 - Diary timeline API returns immutable template snapshots for historical accuracy
