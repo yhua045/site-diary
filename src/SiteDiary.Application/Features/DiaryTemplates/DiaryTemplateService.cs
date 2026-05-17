@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using SiteDiary.Domain.Entities;
 using SiteDiary.Domain.Interfaces;
 
 namespace SiteDiary.Application.Features.DiaryTemplates;
@@ -11,20 +12,17 @@ public class DiaryTemplateService(IUnitOfWork uow) : IDiaryTemplateService
         PropertyNameCaseInsensitive = true,
     };
 
-    public async Task<DiaryTemplateDto?> GetByIdAsync(int id, CancellationToken ct = default)
+    public async Task<DiaryTemplate?> GetByIdAsync(int id, CancellationToken ct = default)
     {
         // Use Query() so the global IsArchived filter is applied.
         var template = await uow.DiaryTemplates
             .Query()
             .FirstOrDefaultAsync(t => t.Id == id, ct);
 
-        if (template is null) return null;
-
-        var sections = DeserializeSections(template.Sections);
-        return new DiaryTemplateDto(template.Id, template.Name, sections);
+        return template;
     }
 
-    public async Task<DiaryTemplateDto?> GetByUserRoleAsync(int userId, CancellationToken ct = default)
+    public async Task<DiaryTemplate?> GetByUserRoleAsync(int userId, CancellationToken ct = default)
     {
         // Resolve: User → active UserRole → Role
         var role = await uow.UserRoles
@@ -45,10 +43,7 @@ public class DiaryTemplateService(IUnitOfWork uow) : IDiaryTemplateService
                .Query()
                .FirstOrDefaultAsync(t => t.IsDefault, ct);
 
-        if (template is null) return null;
-
-        var sections = DeserializeSections(template.Sections);
-        return new DiaryTemplateDto(template.Id, template.Name, sections);
+        return template;
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────

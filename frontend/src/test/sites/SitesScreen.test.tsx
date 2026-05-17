@@ -23,20 +23,14 @@ const mockUsers: User[] = [
     firstName: 'John',
     lastName: 'Smith',
     email: 'john@example.com',
-    isActive: true,
     isArchived: false,
-    createdAt: '',
-    updatedAt: '',
   },
   {
     id: 2,
     firstName: 'Jane',
     lastName: 'Doe',
     email: 'jane@example.com',
-    isActive: true,
     isArchived: false,
-    createdAt: '',
-    updatedAt: '',
   },
 ]
 
@@ -46,16 +40,12 @@ const mockSites: ConstructionSite[] = [
     name: 'Site Alpha',
     address: '1 Main St',
     isArchived: false,
-    createdAt: '',
-    updatedAt: '',
   },
   {
     id: 20,
     name: 'Site Beta',
     address: '2 Main St',
     isArchived: false,
-    createdAt: '',
-    updatedAt: '',
   },
 ]
 

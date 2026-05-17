@@ -16,20 +16,14 @@ const mockUsers: User[] = [
     firstName: 'John',
     lastName: 'Smith',
     email: 'john@example.com',
-    isActive: true,
     isArchived: false,
-    createdAt: '',
-    updatedAt: '',
   },
   {
     id: 2,
     firstName: 'Jane',
     lastName: 'Doe',
     email: 'jane@example.com',
-    isActive: true,
     isArchived: false,
-    createdAt: '',
-    updatedAt: '',
   },
 ]
 

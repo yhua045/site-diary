@@ -6,11 +6,11 @@ namespace SiteDiary.Application.Features.Attachments;
 
 public class AttachmentService(IUnitOfWork uow, IStorageService storage) : IAttachmentService
 {
-    public async Task<OperationResult<AttachmentDto>> UploadAsync(int diaryId, int uploadedByUserId,
+    public async Task<OperationResult<Attachment>> UploadAsync(int diaryId, int uploadedByUserId,
         Stream fileStream, string fileName, string contentType, CancellationToken ct = default)
     {
         var diary = await uow.Diaries.GetByIdAsync(diaryId, ct);
-        if (diary is null) return OperationResult<AttachmentDto>.NotFound();
+        if (diary is null) return OperationResult<Attachment>.NotFound();
 
         var fileUrl = await storage.UploadAsync(fileStream, fileName, contentType, ct);
         var sizeBytes = fileStream.CanSeek ? fileStream.Length : 0L;
@@ -31,7 +31,7 @@ public class AttachmentService(IUnitOfWork uow, IStorageService storage) : IAtta
 
         await uow.Attachments.AddAsync(attachment, ct);
         await uow.SaveChangesAsync(ct);
-        return OperationResult<AttachmentDto>.Ok(MapToDto(attachment));
+        return OperationResult<Attachment>.Ok(attachment);
     }
 
     public async Task<OperationResult<bool>> DeleteAsync(int attachmentId, int requestingUserId, CancellationToken ct = default)
@@ -46,6 +46,5 @@ public class AttachmentService(IUnitOfWork uow, IStorageService storage) : IAtta
         return OperationResult<bool>.Ok(true);
     }
 
-    private static AttachmentDto MapToDto(Attachment a) =>
-        new(a.Id, a.DiaryId, a.FileName, a.FileUrl, a.ContentType);
+
 }

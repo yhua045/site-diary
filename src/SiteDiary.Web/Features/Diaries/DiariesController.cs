@@ -1,6 +1,11 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
+using SiteDiary.Application.DTOs;
+using SiteDiary.Application.Features.Attachments;
 using SiteDiary.Application.Features.Diaries;
+using SiteDiary.Application.Features.DiaryTemplates;
 using SiteDiary.Application.Shared;
+using SiteDiary.Domain.Entities;
 using SiteDiary.Web.Middleware;
 
 namespace SiteDiary.Web.Features.Diaries;
@@ -9,19 +14,30 @@ namespace SiteDiary.Web.Features.Diaries;
 [Route("api/sites/{siteId:int}/diaries")]
 public class DiariesController(IDiaryService diaryService) : ControllerBase
 {
+    private static readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+    };
+
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<DiaryDto>>> GetAll(int siteId, CancellationToken ct) =>
-        Ok(await diaryService.GetBySiteIdAsync(siteId, ct));
+    public async Task<ActionResult<IReadOnlyList<DiaryDto>>> GetAll(int siteId, CancellationToken ct)
+    {
+        var diaries = await diaryService.GetBySiteIdAsync(siteId, ct);
+        return Ok(diaries.Select(MapToDto).ToList());
+    }
 
     [HttpGet("timeline")]
-    public async Task<ActionResult<IReadOnlyList<DiaryTimelineEntryDto>>> GetTimeline(int siteId, CancellationToken ct) =>
-        Ok(await diaryService.GetTimelineAsync(siteId, ct));
+    public async Task<ActionResult<IReadOnlyList<DiaryTimelineEntryDto>>> GetTimeline(int siteId, CancellationToken ct)
+    {
+        var diaries = await diaryService.GetTimelineAsync(siteId, ct);
+        return Ok(diaries.Select(MapToTimelineEntryDto).ToList());
+    }
 
     [HttpGet("{diaryId:int}")]
     public async Task<ActionResult<DiaryDetailDto>> GetById(int siteId, int diaryId, CancellationToken ct)
     {
         var diary = await diaryService.GetByIdWithAttachmentsAsync(siteId, diaryId, ct);
-        return diary is null ? NotFound() : Ok(diary);
+        return diary is null ? NotFound() : Ok(MapToDetailDto(diary));
     }
 
     [HttpPost]
@@ -30,8 +46,18 @@ public class DiariesController(IDiaryService diaryService) : ControllerBase
         if (HttpContext.GetCurrentUserId() is not { } userId)
             return BadRequest("X-User-Id header is required and must be a valid integer.");
 
-        var created = await diaryService.CreateAsync(siteId, userId, dto, ct);
-        return CreatedAtAction(nameof(GetById), new { siteId, diaryId = created.Id }, created);
+        var diary = new Diary
+        {
+            DiaryTemplateId = dto.DiaryTemplateId,
+            Title = dto.Title,
+            Content = dto.Content,
+            Date = DateOnly.FromDateTime(dto.Date.Date),
+            FieldOverrides = SerializeOverrides(dto.FieldOverrides),
+            Payload = dto.Payload is { Count: > 0 } ? JsonSerializer.Serialize(dto.Payload, _jsonOptions) : null
+        };
+
+        var created = await diaryService.CreateAsync(siteId, userId, diary, ct);
+        return CreatedAtAction(nameof(GetById), new { siteId, diaryId = created.Id }, MapToDto(created));
     }
 
     [HttpPut("{diaryId:int}")]
@@ -41,10 +67,18 @@ public class DiariesController(IDiaryService diaryService) : ControllerBase
         if (HttpContext.GetCurrentUserId() is not { } userId)
             return BadRequest("X-User-Id header is required and must be a valid integer.");
 
-        var result = await diaryService.UpdateAsync(siteId, diaryId, userId, dto, ct);
+        var updateValues = new Diary
+        {
+            Title = dto.Title,
+            Content = dto.Content,
+            Date = DateOnly.FromDateTime(dto.Date.Date),
+            FieldOverrides = SerializeOverrides(dto.FieldOverrides)
+        };
+
+        var result = await diaryService.UpdateAsync(siteId, diaryId, userId, updateValues, ct);
         return result.Status switch
         {
-            OperationStatus.Success => Ok(result.Value),
+            OperationStatus.Success => Ok(MapToDto(result.Value)),
             OperationStatus.NotFound => NotFound(),
             OperationStatus.Forbidden => Forbid(),
             _ => StatusCode(StatusCodes.Status500InternalServerError)
@@ -65,5 +99,67 @@ public class DiariesController(IDiaryService diaryService) : ControllerBase
             OperationStatus.Forbidden => Forbid(),
             _ => StatusCode(StatusCodes.Status500InternalServerError)
         };
+    }
+
+    // ── Mapping Helpers ───────────────────────────────────────────────────────
+
+    private static DiaryDto MapToDto(Diary d) =>
+        new(d.Id, d.ConstructionSiteId, d.AuthorUserId, d.Title, d.Content,
+            new DateTimeOffset(d.Date.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero),
+            d.DiaryTemplateId);
+
+    private static DiaryTimelineEntryDto MapToTimelineEntryDto(Diary d)
+    {
+        var authorName = $"{d.Author?.FirstName} {d.Author?.LastName}";
+        var authorRole = d.Author?.UserRoles
+            .Where(ur => ur.IsActive)
+            .Select(ur => ur.Role?.Name)
+            .FirstOrDefault();
+
+        var payload = TryParseJsonElement(d.Payload) ?? JsonDocument.Parse("{}").RootElement.Clone();
+        var snapshot = TryDeserializeSnapshot(d.TemplateSnapshot);
+        var attachments = d.Attachments
+            .Select(a => new AttachmentDto(a.Id, a.DiaryId, a.FileName, a.FileUrl, a.ContentType))
+            .ToList();
+
+        return new DiaryTimelineEntryDto(
+            d.Id, d.ConstructionSiteId, d.AuthorUserId,
+            authorName, authorRole,
+            d.Date,
+            payload, snapshot, attachments);
+    }
+
+    private static DiaryDetailDto MapToDetailDto(Diary d) =>
+        new(d.Id, d.ConstructionSiteId, d.AuthorUserId, d.Title, d.Content,
+            new DateTimeOffset(d.Date.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero),
+            d.Attachments.Select(a => new AttachmentDto(a.Id, a.DiaryId, a.FileName, a.FileUrl, a.ContentType))
+                         .ToList(),
+            d.DiaryTemplateId,
+            DeserializeOverrides(d.FieldOverrides));
+
+    private static string? SerializeOverrides(FieldOverridesDto? overrides)
+    {
+        if (overrides is null) return null;
+        return JsonSerializer.Serialize(overrides, _jsonOptions);
+    }
+
+    private static FieldOverridesDto? DeserializeOverrides(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return null;
+        return JsonSerializer.Deserialize<FieldOverridesDto>(json, _jsonOptions);
+    }
+
+    private static JsonElement? TryParseJsonElement(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return null;
+        try { return JsonDocument.Parse(json).RootElement.Clone(); }
+        catch { return null; }
+    }
+
+    private static IReadOnlyList<FieldDescriptorDto>? TryDeserializeSnapshot(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return null;
+        try { return JsonSerializer.Deserialize<IReadOnlyList<FieldDescriptorDto>>(json, _jsonOptions); }
+        catch { return null; }
     }
 }

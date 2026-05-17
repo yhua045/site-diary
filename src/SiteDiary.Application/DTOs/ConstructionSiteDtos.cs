@@ -5,9 +5,7 @@ public record ConstructionSiteDto(
     string Name,
     string? Description,
     string Address,
-    bool IsArchived,
-    DateTime CreatedAt,
-    DateTime UpdatedAt);
+    bool IsArchived);
 
 public record CreateConstructionSiteRequest(
     string Name,

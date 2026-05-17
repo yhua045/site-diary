@@ -25,7 +25,6 @@ public record DiaryTimelineEntryDto(
     string AuthorName,
     string? AuthorRole,
     DateOnly Date,
-    bool IsPublished,
     JsonElement Payload,
     IReadOnlyList<FieldDescriptorDto> TemplateSnapshot,
     IReadOnlyList<AttachmentDto> Attachments);
@@ -40,7 +39,6 @@ public record DiaryDto(
     string Title,
     string? Content,
     DateTimeOffset Date,
-    bool IsPublished,
     int? DiaryTemplateId = null);
 
 /// <summary>
@@ -53,7 +51,6 @@ public record DiaryDetailDto(
     string Title,
     string? Content,
     DateTimeOffset Date,
-    bool IsPublished,
     IReadOnlyList<AttachmentDto> Attachments,
     int? DiaryTemplateId = null,
     FieldOverridesDto? FieldOverrides = null);
@@ -65,7 +62,6 @@ public record CreateDiaryDto(
     string Title,
     string? Content,
     DateTimeOffset Date,
-    bool IsPublished = false,
     int? DiaryTemplateId = null,
     FieldOverridesDto? FieldOverrides = null,
     Dictionary<string, JsonElement>? Payload = null);

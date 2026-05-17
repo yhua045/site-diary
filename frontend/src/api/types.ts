@@ -4,8 +4,6 @@ export interface ConstructionSite {
   description?: string
   address: string
   isArchived: boolean
-  createdAt: string
-  updatedAt: string
 }
 
 export interface CreateSiteRequest {
@@ -25,10 +23,7 @@ export interface User {
   firstName: string
   lastName: string
   email: string
-  isActive: boolean
   isArchived: boolean
-  createdAt: string
-  updatedAt: string
 }
 
 export interface CreateUserRequest {
@@ -41,7 +36,6 @@ export interface UpdateUserRequest {
   firstName: string
   lastName: string
   email: string
-  isActive: boolean
 }
 
 // ── Diary Template ────────────────────────────────────────────────────────────
@@ -106,7 +100,6 @@ export interface DiaryTimelineEntry {
   authorName: string
   authorRole?: string
   date: string
-  isPublished: boolean
   payload: Record<string, unknown>
   templateSnapshot: FieldDescriptor[]
   attachments: AttachmentDto[]
@@ -122,10 +115,6 @@ export interface Diary {
   title: string
   content?: string
   date: string
-  isPublished: boolean
-  isArchived: boolean
-  createdAt: string
-  updatedAt: string
 }
 
 export interface FieldOverrides {
@@ -137,7 +126,6 @@ export interface CreateDiaryRequest {
   title: string
   content?: string
   date: string
-  isPublished?: boolean
   diaryTemplateId?: number
   fieldOverrides?: FieldOverrides
   payload?: Record<string, unknown>

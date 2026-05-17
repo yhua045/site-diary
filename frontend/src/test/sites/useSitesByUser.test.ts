@@ -12,24 +12,18 @@ const mockSites: ConstructionSite[] = [
     name: 'Site Alpha',
     address: '1 Main St',
     isArchived: false,
-    createdAt: '',
-    updatedAt: '',
   },
   {
     id: 2,
     name: 'Site Beta',
     address: '2 Second St',
     isArchived: false,
-    createdAt: '',
-    updatedAt: '',
   },
   {
     id: 3,
     name: 'Site Archived',
     address: '3 Third St',
     isArchived: true,
-    createdAt: '',
-    updatedAt: '',
   },
 ]
 

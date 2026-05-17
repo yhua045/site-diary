@@ -10,7 +10,6 @@ const baseEntry: DiaryTimelineEntry = {
   authorName: 'John Smith',
   authorRole: 'Foreman',
   date: '2026-05-15',
-  isPublished: true,
   payload: { weather: 'Sunny, 22 °C', workers: 12 },
   templateSnapshot: [
     { key: 'weather', label: 'Weather', type: 'text', displayOrder: 1 },

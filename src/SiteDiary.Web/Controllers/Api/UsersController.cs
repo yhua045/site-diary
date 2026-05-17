@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using SiteDiary.Application.DTOs;
 using SiteDiary.Application.Features.DiaryTemplates;
 using SiteDiary.Application.Interfaces;
+using SiteDiary.Domain.Entities;
 using SiteDiary.Web.Middleware;
 
 namespace SiteDiary.Web.Controllers.Api;
@@ -15,14 +16,17 @@ public class UsersController(
 {
     [HttpGet]
     [SkipResourceAuthorization]
-    public async Task<ActionResult<IReadOnlyList<UserDto>>> GetAll(CancellationToken ct) =>
-        Ok(await userService.GetAllAsync(ct));
+    public async Task<ActionResult<IReadOnlyList<UserDto>>> GetAll(CancellationToken ct)
+    {
+        var users = await userService.GetAllAsync(ct);
+        return Ok(users.Select(MapUserToDto).ToList());
+    }
 
     [HttpGet("{id:int}")]
     public async Task<ActionResult<UserDto>> GetById(int id, CancellationToken ct)
     {
         var user = await userService.GetByIdAsync(id, ct);
-        return user is null ? NotFound() : Ok(user);
+        return user is null ? NotFound() : Ok(MapUserToDto(user));
     }
 
     [HttpGet("{userId:int}/sites")]
@@ -32,7 +36,7 @@ public class UsersController(
         if (user is null) return NotFound();
 
         var sites = await siteService.GetByUserIdAsync(userId, ct);
-        return Ok(sites);
+        return Ok(sites.Select(MapSiteToDto).ToList());
     }
 
     /// <summary>
@@ -46,21 +50,52 @@ public class UsersController(
         if (user is null) return NotFound();
 
         var template = await templateService.GetByUserRoleAsync(userId, ct);
-        return template is null ? NotFound() : Ok(template);
+        return template is null ? NotFound() : Ok(MapTemplateToDto(template));
     }
 
     [HttpPost]
     public async Task<ActionResult<UserDto>> Create([FromBody] CreateUserRequest request, CancellationToken ct)
     {
-        var created = await userService.CreateAsync(request, ct);
-        return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+        var user = new User
+        {
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            Email = request.Email
+        };
+        var created = await userService.CreateAsync(user, ct);
+        return CreatedAtAction(nameof(GetById), new { id = created.Id }, MapUserToDto(created));
     }
 
     [HttpPut("{id:int}")]
     public async Task<ActionResult<UserDto>> Update(int id, [FromBody] UpdateUserRequest request, CancellationToken ct)
     {
-        var updated = await userService.UpdateAsync(id, request, ct);
-        return updated is null ? NotFound() : Ok(updated);
+        var updateValues = new User
+        {
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            Email = request.Email
+        };
+        var updated = await userService.UpdateAsync(id, updateValues, ct);
+        return updated is null ? NotFound() : Ok(MapUserToDto(updated));
+    }
+
+    private static UserDto MapUserToDto(User u) =>
+        new(u.Id, u.FirstName, u.LastName, u.Email, u.IsArchived);
+
+    private static ConstructionSiteDto MapSiteToDto(ConstructionSite s) =>
+        new(s.Id, s.Name, s.Description, s.Address, s.IsArchived);
+
+    private static DiaryTemplateDto MapTemplateToDto(DiaryTemplate t)
+    {
+        var sections = DeserializeSections(t.Sections);
+        return new DiaryTemplateDto(t.Id, t.Name, sections);
+    }
+
+    private static IReadOnlyList<SectionDef> DeserializeSections(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return Array.Empty<SectionDef>();
+        return System.Text.Json.JsonSerializer.Deserialize<IReadOnlyList<SectionDef>>(json, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+               ?? Array.Empty<SectionDef>();
     }
 }
 

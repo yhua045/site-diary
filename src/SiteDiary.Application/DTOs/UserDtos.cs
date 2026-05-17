@@ -5,10 +5,7 @@ public record UserDto(
     string FirstName,
     string LastName,
     string Email,
-    bool IsActive,
-    bool IsArchived,
-    DateTime CreatedAt,
-    DateTime UpdatedAt);
+    bool IsArchived);
 
 public record CreateUserRequest(
     string FirstName,
@@ -18,5 +15,4 @@ public record CreateUserRequest(
 public record UpdateUserRequest(
     string FirstName,
     string LastName,
-    string Email,
-    bool IsActive);
+    string Email);
