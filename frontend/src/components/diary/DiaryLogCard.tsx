@@ -25,7 +25,7 @@ export function DiaryLogCard({ entry, onImageClick }: DiaryLogCardProps) {
   const images = entry.attachments.filter((a) => a.contentType.startsWith('image/'))
   const docs = entry.attachments.filter((a) => !a.contentType.startsWith('image/'))
 
-  const sortedSnapshot = [...entry.templateSnapshot].sort((a, b) => a.displayOrder - b.displayOrder)
+  const sortedSnapshot = [...(entry.templateSnapshot || [])].sort((a, b) => a.displayOrder - b.displayOrder)
   const snapshotKeys = new Set(sortedSnapshot.map((d) => d.key))
 
   // Ad-hoc fields: present in payload but absent from the snapshot

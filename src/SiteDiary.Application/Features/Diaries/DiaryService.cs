@@ -55,6 +55,45 @@ public class DiaryService(IUnitOfWork uow) : IDiaryService
         diary.AuthorUserId = authorUserId;
         diary.CreatedAt = DateTime.UtcNow;
         diary.UpdatedAt = DateTime.UtcNow;
+
+        // Build template snapshot if missing
+        if (diary.DiaryTemplateId.HasValue && string.IsNullOrEmpty(diary.TemplateSnapshot))
+        {
+            var template = await uow.DiaryTemplates.Query()
+                .FirstOrDefaultAsync(t => t.Id == diary.DiaryTemplateId.Value && !t.IsArchived, ct);
+            if (template is not null)
+            {
+                var sections = DeserializeSections(template.Sections);
+                
+                var removedSet = new HashSet<string>();
+                List<FieldDef> addedFields = new();
+                if (!string.IsNullOrEmpty(diary.FieldOverrides))
+                {
+                    try
+                    {
+                        var overrides = JsonSerializer.Deserialize<FieldOverridesDto>(diary.FieldOverrides, _jsonOptions);
+                        if (overrides?.Removed != null)
+                            removedSet = overrides.Removed.ToHashSet();
+                        if (overrides?.Added != null)
+                            addedFields = overrides.Added.ToList();
+                    }
+                    catch { /* ignore invalid overrides */ }
+                }
+
+                var order = 1;
+                var descriptors = sections
+                    .SelectMany(s => s.Fields)
+                    .Where(f => !removedSet.Contains(f.Id))
+                    .Select(f => new FieldDescriptorDto(f.Id, f.Label, f.Type, order++))
+                    .ToList();
+
+                foreach (var f in addedFields)
+                    descriptors.Add(new FieldDescriptorDto(f.Id, f.Label, f.Type, order++));
+
+                diary.TemplateSnapshot = JsonSerializer.Serialize(descriptors, _jsonOptions);
+            }
+        }
+
         await uow.Diaries.AddAsync(diary, ct);
         await uow.SaveChangesAsync(ct);
         return diary;

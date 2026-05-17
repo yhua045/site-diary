@@ -1,5 +1,6 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using SiteDiary.Application.Features.Attachments;
 using SiteDiary.Application.Features.AuditLogs;
 using SiteDiary.Application.Features.Diaries;
@@ -90,6 +91,22 @@ if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Docke
 }
 
 app.UseHttpsRedirection();
+
+// ── Serve uploaded attachments BEFORE auth middleware — browsers cannot send
+//    custom headers from <img src> so these must be public.  No-store prevents
+//    the browser from caching them, which is what caused the HTTP 304.
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(Path.Combine(app.Environment.ContentRootPath, "uploads")),
+    RequestPath = "/uploads",
+    OnPrepareResponse = context =>
+    {
+        var headers = context.Context.Response.Headers;
+        headers.CacheControl = "no-store, no-cache, must-revalidate, max-age=0";
+        headers.Pragma = "no-cache";
+        headers.Expires = "0";
+    }
+});
 
 // ── Middleware ────────────────────────────────────────────────────────────────
 app.UseRouting();                                          // explicit — ensures RouteValues populated

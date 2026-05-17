@@ -19,7 +19,7 @@ public class AttachmentsController(IAttachmentService attachmentService) : Contr
         var result = await attachmentService.UploadAsync(diaryId, userId, stream, file.FileName, file.ContentType, ct);
         return result.Status switch
         {
-            OperationStatus.Success => CreatedAtAction(nameof(Upload), new { diaryId }, result.Value),
+            OperationStatus.Success => CreatedAtAction(nameof(Upload), new { diaryId, attachmentId = result.Value!.Id }, ToDto(result.Value!)),
             OperationStatus.NotFound => NotFound(),
             _ => StatusCode(StatusCodes.Status500InternalServerError)
         };
@@ -40,4 +40,7 @@ public class AttachmentsController(IAttachmentService attachmentService) : Contr
             _ => StatusCode(StatusCodes.Status500InternalServerError)
         };
     }
+
+    private static AttachmentDto ToDto(SiteDiary.Domain.Entities.Attachment attachment) =>
+        new(attachment.Id, attachment.DiaryId, attachment.FileName, attachment.FileUrl, attachment.ContentType);
 }
