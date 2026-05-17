@@ -9,7 +9,7 @@ public class Diary : BaseEntity
     public int? DiaryTemplateId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string? Content { get; set; }
-    public DateOnly Date { get; set; }
+    public DateTimeOffset Date { get; set; }
     public bool IsPublished { get; set; } = false;
     public bool IsArchived { get; set; } = false;
     /// <summary>JSON: { "removed": [], "added": [] } — per-diary field overrides relative to the base template.</summary>

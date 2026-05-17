@@ -9,12 +9,13 @@ interface DiaryTimelineProps {
 }
 
 function monthKey(dateStr: string): string {
-  const d = new Date(dateStr + 'T00:00:00')
+  const d = new Date(dateStr.includes('T') ? dateStr : `${dateStr}T00:00:00`)
   return `${d.getFullYear()}-${d.getMonth()}`
 }
 
 function monthLabel(dateStr: string): string {
-  return new Date(dateStr + 'T00:00:00').toLocaleDateString(undefined, {
+  const d = new Date(dateStr.includes('T') ? dateStr : `${dateStr}T00:00:00`)
+  return d.toLocaleDateString(undefined, {
     month: 'long',
     year: 'numeric',
   })

@@ -24,7 +24,7 @@ public record DiaryTimelineEntryDto(
     int AuthorUserId,
     string AuthorName,
     string? AuthorRole,
-    DateOnly Date,
+    DateTimeOffset Date,
     JsonElement Payload,
     IReadOnlyList<FieldDescriptorDto> TemplateSnapshot,
     IReadOnlyList<AttachmentDto> Attachments);

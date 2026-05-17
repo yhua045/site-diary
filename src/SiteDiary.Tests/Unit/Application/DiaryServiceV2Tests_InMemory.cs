@@ -37,7 +37,7 @@ public class DiaryServiceV2Tests_InMemory : IDisposable
         AuthorUserId = authorId,
         Title = $"Diary {id}",
         Content = "Some content",
-        Date = DateOnly.FromDateTime(DateTime.UtcNow),
+        Date = DateTimeOffset.UtcNow,
         IsPublished = false,
         IsArchived = isArchived,
         CreatedAt = DateTime.UtcNow,
@@ -276,7 +276,7 @@ public class DiaryServiceV2Tests_InMemory : IDisposable
         var site = new ConstructionSite { Id = 1, Name = "Site", Address = "Addr", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
         await _db.Set<ConstructionSite>().AddAsync(site);
 
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var today = DateTimeOffset.UtcNow.Date;
         var yesterday = today.AddDays(-1);
 
         var d1 = new Diary { Id = 1, ConstructionSiteId = 1, AuthorUserId = 10, Title = "D1", Date = today, IsArchived = false, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
@@ -308,7 +308,7 @@ public class DiaryServiceV2Tests_InMemory : IDisposable
         {
             Id = 1, ConstructionSiteId = 1, AuthorUserId = 10, Title = "D1",
             DiaryTemplateId = 42,
-            Date = DateOnly.FromDateTime(DateTime.UtcNow),
+            Date = DateTimeOffset.UtcNow,
             IsArchived = false, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
         };
         await _db.Set<Diary>().AddAsync(diary);

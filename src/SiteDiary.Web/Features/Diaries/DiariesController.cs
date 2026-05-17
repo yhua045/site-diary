@@ -37,7 +37,10 @@ public class DiariesController(IDiaryService diaryService) : ControllerBase
     public async Task<ActionResult<DiaryDetailDto>> GetById(int siteId, int diaryId, CancellationToken ct)
     {
         var diary = await diaryService.GetByIdWithAttachmentsAsync(siteId, diaryId, ct);
-        return diary is null ? NotFound() : Ok(MapToDetailDto(diary));
+        if (diary is null)
+            return NotFound();
+
+        return Ok(MapToDetailDto(diary));
     }
 
     [HttpPost]
@@ -51,7 +54,7 @@ public class DiariesController(IDiaryService diaryService) : ControllerBase
             DiaryTemplateId = dto.DiaryTemplateId,
             Title = dto.Title,
             Content = dto.Content,
-            Date = DateOnly.FromDateTime(dto.Date.Date),
+            Date = dto.Date,
             FieldOverrides = SerializeOverrides(dto.FieldOverrides),
             Payload = dto.Payload is { Count: > 0 } ? JsonSerializer.Serialize(dto.Payload, _jsonOptions) : null
         };
@@ -71,7 +74,7 @@ public class DiariesController(IDiaryService diaryService) : ControllerBase
         {
             Title = dto.Title,
             Content = dto.Content,
-            Date = DateOnly.FromDateTime(dto.Date.Date),
+            Date = dto.Date,
             FieldOverrides = SerializeOverrides(dto.FieldOverrides)
         };
 
@@ -105,7 +108,7 @@ public class DiariesController(IDiaryService diaryService) : ControllerBase
 
     private static DiaryDto MapToDto(Diary d) =>
         new(d.Id, d.ConstructionSiteId, d.AuthorUserId, d.Title, d.Content,
-            new DateTimeOffset(d.Date.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero),
+            d.Date,
             d.DiaryTemplateId);
 
     private static DiaryTimelineEntryDto MapToTimelineEntryDto(Diary d)
@@ -131,7 +134,7 @@ public class DiariesController(IDiaryService diaryService) : ControllerBase
 
     private static DiaryDetailDto MapToDetailDto(Diary d) =>
         new(d.Id, d.ConstructionSiteId, d.AuthorUserId, d.Title, d.Content,
-            new DateTimeOffset(d.Date.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero),
+            d.Date,
             d.Attachments.Select(a => new AttachmentDto(a.Id, a.DiaryId, a.FileName, a.FileUrl, a.ContentType))
                          .ToList(),
             d.DiaryTemplateId,

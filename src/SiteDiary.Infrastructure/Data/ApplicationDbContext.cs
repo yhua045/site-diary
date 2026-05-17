@@ -54,6 +54,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         modelBuilder.Entity<Diary>(e =>
         {
             e.Property(x => x.Title).HasMaxLength(300).IsRequired();
+            e.Property(x => x.Date).HasColumnType("datetimeoffset");
             e.Property(x => x.FieldOverrides).HasColumnType("nvarchar(max)");
             e.Property(x => x.Payload).HasColumnType("nvarchar(max)");
             e.Property(x => x.TemplateSnapshot).HasColumnType("nvarchar(max)");

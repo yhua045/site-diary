@@ -4,12 +4,14 @@ import { DiaryScreen } from './features/diaries/DiaryScreen'
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<SitesScreen />} />
-        <Route path="/sites/:siteId/diary" element={<DiaryScreen />} />
-      </Routes>
-    </BrowserRouter>
+    <div className="max-w-md mx-auto min-h-screen bg-slate-50 relative shadow-2xl overflow-x-hidden">
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<SitesScreen />} />
+          <Route path="/sites/:siteId/diary" element={<DiaryScreen />} />
+        </Routes>
+      </BrowserRouter>
+    </div>
   )
 }
 

@@ -123,7 +123,7 @@ public class RepositoryTests : IDisposable
             Title = "Day 1",
             ConstructionSiteId = site.Id,
             AuthorUserId = user.Id,
-            Date = DateOnly.FromDateTime(DateTime.UtcNow),
+            Date = DateTimeOffset.UtcNow,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };

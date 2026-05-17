@@ -8,12 +8,16 @@ interface DiaryLogCardProps {
   onImageClick?: (id: number) => void
 }
 
-function formatDate(dateStr: string): string {
-  return new Date(dateStr + 'T00:00:00').toLocaleDateString(undefined, {
+function formatDateTime(dateStr: string): string {
+  // Gracefully handle dates that might already be full ISO, or missing time.
+  const d = new Date(dateStr.includes('T') ? dateStr : `${dateStr}T00:00:00`)
+  return d.toLocaleString(undefined, {
     weekday: 'short',
     day: 'numeric',
     month: 'long',
     year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
   })
 }
 
@@ -36,7 +40,7 @@ export function DiaryLogCard({ entry, onImageClick }: DiaryLogCardProps) {
       {/* Card Header */}
       <div className="flex items-start justify-between px-4 py-3 bg-gray-50 border-b border-gray-200">
         <div>
-          <p className="text-sm font-semibold text-gray-900">{formatDate(entry.date)}</p>
+          <p className="text-sm font-semibold text-gray-900">{formatDateTime(entry.date)}</p>
           <div className="mt-1 flex items-center gap-1.5 text-xs text-gray-500">
             <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 text-blue-700 font-bold text-[10px]">
               {authorInitial(entry.authorName)}

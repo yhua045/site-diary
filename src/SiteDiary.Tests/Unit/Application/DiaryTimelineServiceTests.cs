@@ -73,7 +73,7 @@ public class DiaryTimelineServiceTests : IDisposable
         Id = id, ConstructionSiteId = siteId, AuthorUserId = author.Id,
         Author = author,
         Title = $"Diary {id}", Content = "Content",
-        Date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-id)),
+        Date = DateTimeOffset.UtcNow.AddDays(-id),
         IsPublished = false, IsArchived = isArchived,
         Payload = payload, TemplateSnapshot = templateSnapshot,
         Attachments = new List<Attachment>(),
@@ -96,7 +96,7 @@ public class DiaryTimelineServiceTests : IDisposable
         var diaryNew = new Diary
         {
             Id = 2, ConstructionSiteId = 1, AuthorUserId = author.Id, Author = author,
-            Title = "Diary 2", Date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)),
+            Title = "Diary 2", Date = DateTimeOffset.UtcNow.AddDays(1),
             IsPublished = false, IsArchived = false,
             Attachments = new List<Attachment>(),
             CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
@@ -197,7 +197,7 @@ public class DiaryTimelineServiceTests : IDisposable
         var diary = new Diary
         {
             Id = 1, ConstructionSiteId = 1, AuthorUserId = author.Id, Author = author,
-            Title = "Diary 1", Date = DateOnly.FromDateTime(DateTime.UtcNow),
+            Title = "Diary 1", Date = DateTimeOffset.UtcNow,
             IsPublished = false, IsArchived = false,
             Attachments = new List<Attachment> { attachment },
             CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow

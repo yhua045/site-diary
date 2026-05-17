@@ -17,7 +17,7 @@ export function DiaryScreen() {
   }
   const siteId = Number(siteIdParam)
 
-  const { users, isLoading: usersLoading } = useUserList()
+  const { users } = useUserList()
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [entries, setEntries] = useState<DiaryTimelineEntry[]>([])
   const [timelineLoading, setTimelineLoading] = useState(false)
@@ -42,17 +42,6 @@ export function DiaryScreen() {
       .catch(() => setEntries([]))
       .finally(() => setTimelineLoading(false))
   }, [siteId, selectedUser])
-
-  function handleUserChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const id = e.target.value
-    if (id) {
-      localStorage.setItem('selectedUserId', id)
-      setSelectedUser(users.find(u => u.id === Number(id)) ?? null)
-    } else {
-      localStorage.removeItem('selectedUserId')
-      setSelectedUser(null)
-    }
-  }
 
   async function handleOpenCreate() {
     if (!selectedUser) return
@@ -101,29 +90,10 @@ export function DiaryScreen() {
         <Link to="/" className="text-sm text-blue-600 hover:underline">
           ← Sites
         </Link>
+        <label className="block float-right">{users.find(user => user.id == selectedUser?.id)?.firstName} {users.find(user => user.id == selectedUser?.id)?.lastName}</label>
       </div>
 
-      {/* ── User Switcher ─────────────────────────────────────────────── */}
-      <div className="flex items-center gap-2 px-4 py-3 bg-white border-b border-gray-200">
-        <label htmlFor="user-select" className="text-sm font-medium text-gray-700 shrink-0">
-          User:
-        </label>
-        <select
-          id="user-select"
-          aria-label="User"
-          value={selectedUser?.id ?? ''}
-          onChange={handleUserChange}
-          disabled={usersLoading}
-          className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-        >
-          <option value="">— Select user —</option>
-          {users.map(user => (
-            <option key={user.id} value={user.id}>
-              {user.firstName} {user.lastName}
-            </option>
-          ))}
-        </select>
-      </div>
+
 
       {/* ── Timeline ──────────────────────────────────────────────────── */}
       <DiaryTimeline

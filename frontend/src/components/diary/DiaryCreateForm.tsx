@@ -19,7 +19,9 @@ interface DiaryCreateFormProps {
 }
 
 function todayIso(): string {
-  return new Date().toISOString().slice(0, 10)
+  // Return YYYY-MM-DDThh:mm to fit datetime-local input
+  const d = new Date()
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
 }
 
 export function DiaryCreateForm({ template, onSubmit, onClose, isSubmitting }: DiaryCreateFormProps) {
@@ -62,9 +64,11 @@ export function DiaryCreateForm({ template, onSubmit, onClose, isSubmitting }: D
       }
     }
     
+    const finalDate = new Date(date).toISOString()
+    
     onSubmit({ 
       payload, 
-      date,
+      date: finalDate,
       ...(customFields.length > 0 && {
         fieldOverrides: {
           added: customFields,
@@ -240,11 +244,11 @@ export function DiaryCreateForm({ template, onSubmit, onClose, isSubmitting }: D
         {/* Date field */}
         <div className="mb-4">
           <label htmlFor="diary-date" className="block text-sm font-medium text-gray-700 mb-1">
-            Date
+            Date & Time
           </label>
           <input
             id="diary-date"
-            type="date"
+            type="datetime-local"
             value={date}
             onChange={e => setDate(e.target.value)}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"

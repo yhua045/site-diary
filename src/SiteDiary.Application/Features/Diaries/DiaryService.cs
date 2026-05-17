@@ -150,18 +150,18 @@ public class DiaryService(IUnitOfWork uow) : IDiaryService
         return new DiaryTimelineEntryDto(
             d.Id, d.ConstructionSiteId, d.AuthorUserId,
             authorName, authorRole,
-            d.Date, 
+            d.Date,
             payload, snapshot, attachments);
     }
 
     private static DiaryDto MapToDto(Diary d) =>
         new(d.Id, d.ConstructionSiteId, d.AuthorUserId, d.Title, d.Content,
-            new DateTimeOffset(d.Date.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero),
+            d.Date,
             d.DiaryTemplateId);
 
     private static DiaryDetailDto MapToDetailDto(Diary d) =>
         new(d.Id, d.ConstructionSiteId, d.AuthorUserId, d.Title, d.Content,
-            new DateTimeOffset(d.Date.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero),
+            d.Date,
             d.Attachments.Select(a => new AttachmentDto(a.Id, a.DiaryId, a.FileName, a.FileUrl, a.ContentType))
                          .ToList(),
             d.DiaryTemplateId,
