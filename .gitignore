@@ -53,5 +53,8 @@ Thumbs.db
 # Docker
 docker-compose.override.yml
 
+# Ignore uploaded files (user content)
+src/SiteDiary.Web/uploads/
+
 # User secrets (uncomment if you store secrets locally)
 #secrets.json
