@@ -14,7 +14,8 @@ public class AuditLogService(IUnitOfWork uow) : IAuditLogService
         var totalCount = await query.CountAsync(ct);
 
         var items = await query
-            .OrderBy(a => a.Timestamp)
+            .Include(u => u.ChangedBy)
+            .OrderByDescending(a => a.Timestamp)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(ct);

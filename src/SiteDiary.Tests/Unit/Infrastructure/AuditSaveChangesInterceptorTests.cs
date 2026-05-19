@@ -250,6 +250,27 @@ public class AuditSaveChangesInterceptorTests
         db.AuditHistories.First().Action.Should().Be("Insert");
     }
 
+    [Fact]
+    public async Task T09b_SavingChanges_AddsInsertedValues_ToAuditHistoryRow()
+    {
+        var (sut, _) = BuildSut("42");
+        await using var db = BuildContext(sut);
+
+        db.ConstructionSites.Add(new ConstructionSite
+        {
+            Name = "Site for Insert Values",
+            Address = "8 Eighth Ave",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        });
+        await db.SaveChangesAsync();
+
+        var auditRow = db.AuditHistories.Single();
+        auditRow.Action.Should().Be("Insert");
+        auditRow.Changes.Should().Contain("Site for Insert Values");
+        auditRow.Changes.Should().Contain("8 Eighth Ave");
+    }
+
     // ── T10 — Interceptor skips AuditHistory entities (self-audit guard) ──────
 
     [Fact]

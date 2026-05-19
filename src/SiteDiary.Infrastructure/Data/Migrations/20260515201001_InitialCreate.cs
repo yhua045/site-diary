@@ -73,7 +73,7 @@ namespace SiteDiary.Infrastructure.Data.Migrations
                     EntityName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     EntityId = table.Column<int>(type: "int", nullable: false),
                     Action = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    ChangedByUserId = table.Column<int>(type: "int", nullable: false),
+                    ChangedByUserId = table.Column<int>(type: "int", nullable: true),
                     Changes = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Timestamp = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),

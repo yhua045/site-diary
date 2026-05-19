@@ -12,8 +12,8 @@ using SiteDiary.Infrastructure.Data;
 namespace SiteDiary.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260515201001_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260517045517_MakeAuditHistoryChangedByUserIdOptional")]
+    partial class MakeAuditHistoryChangedByUserIdOptional
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -187,17 +187,26 @@ namespace SiteDiary.Infrastructure.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateOnly>("Date")
-                        .HasColumnType("date");
+                    b.Property<DateTimeOffset>("Date")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<int?>("DiaryTemplateId")
                         .HasColumnType("int");
+
+                    b.Property<string>("FieldOverrides")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsArchived")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsPublished")
                         .HasColumnType("bit");
+
+                    b.Property<string>("Payload")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TemplateSnapshot")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -248,6 +257,9 @@ namespace SiteDiary.Infrastructure.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<int?>("RoleId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Sections")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -258,6 +270,9 @@ namespace SiteDiary.Infrastructure.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("RoleId")
+                        .HasDatabaseName("IX_DiaryTemplates_RoleId");
 
                     b.ToTable("DiaryTemplates");
                 });
@@ -438,8 +453,7 @@ namespace SiteDiary.Infrastructure.Data.Migrations
                     b.HasOne("SiteDiary.Domain.Entities.User", "ChangedBy")
                         .WithMany()
                         .HasForeignKey("ChangedByUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("ChangedBy");
                 });
@@ -478,7 +492,14 @@ namespace SiteDiary.Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("SiteDiary.Domain.Entities.Role", "Role")
+                        .WithMany("DiaryTemplates")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("CreatedBy");
+
+                    b.Navigation("Role");
                 });
 
             modelBuilder.Entity("SiteDiary.Domain.Entities.SiteUser", b =>
@@ -546,6 +567,8 @@ namespace SiteDiary.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("SiteDiary.Domain.Entities.Role", b =>
                 {
+                    b.Navigation("DiaryTemplates");
+
                     b.Navigation("SiteUsers");
 
                     b.Navigation("UserRoles");

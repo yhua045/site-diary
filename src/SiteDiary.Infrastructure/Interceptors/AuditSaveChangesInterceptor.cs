@@ -88,6 +88,22 @@ public sealed class AuditSaveChangesInterceptor(
                     "Audit: {State} on {Entity} [{PrimaryKey}] by User={UserId} at {Timestamp}. Changes: {@Changes}",
                     state, entityName, primaryKey, userIdStr, timestamp, changes);
             }
+            else if (entry.State == EntityState.Added)
+            {
+                var values = entry.Properties
+                    .Select(p => new
+                    {
+                        Property = p.Metadata.Name,
+                        Value = p.CurrentValue
+                    })
+                    .ToList();
+
+                changesJson = JsonSerializer.Serialize(values);
+
+                logger.LogInformation(
+                    "Audit: {State} on {Entity} [{PrimaryKey}] by User={UserId} at {Timestamp}. Changes: {@Changes}",
+                    state, entityName, primaryKey, userIdStr, timestamp, values);
+            }
             else
             {
                 logger.LogInformation(

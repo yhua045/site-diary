@@ -167,12 +167,6 @@ public static class DataSeeder
                             "type": "file_attachment",
                             "required": false,
                             "placeholder": "Attach photos, documents or other files..."
-                          },
-                          {
-                            "id": "f_dynamic_fields",
-                            "label": "Custom Fields",
-                            "type": "dynamic_fields",
-                            "required": false
                           }
                         ]
                       }
@@ -254,12 +248,6 @@ public static class DataSeeder
                             "type": "file_attachment",
                             "required": false,
                             "placeholder": "Attach photos, documents or other files..."
-                          },
-                          {
-                            "id": "f_dynamic_fields",
-                            "label": "Custom Fields",
-                            "type": "dynamic_fields",
-                            "required": false
                           }
                         ]
                       }
@@ -339,12 +327,6 @@ public static class DataSeeder
                             "type": "file_attachment",
                             "required": false,
                             "placeholder": "Attach photos, documents or other files..."
-                          },
-                          {
-                            "id": "f_dynamic_fields",
-                            "label": "Custom Fields",
-                            "type": "dynamic_fields",
-                            "required": false
                           }
                         ]
                       }
@@ -423,12 +405,6 @@ public static class DataSeeder
                             "type": "file_attachment",
                             "required": false,
                             "placeholder": "Attach photos, documents or other files..."
-                          },
-                          {
-                            "id": "f_dynamic_fields",
-                            "label": "Custom Fields",
-                            "type": "dynamic_fields",
-                            "required": false
                           }
                         ]
                       }
@@ -494,12 +470,6 @@ public static class DataSeeder
                             "type": "file_attachment",
                             "required": false,
                             "placeholder": "Attach photos, documents or other files..."
-                          },
-                          {
-                            "id": "f_dynamic_fields",
-                            "label": "Custom Fields",
-                            "type": "dynamic_fields",
-                            "required": false
                           }
                         ]
                       }
@@ -561,12 +531,6 @@ public static class DataSeeder
                         "type": "file_attachment",
                         "required": false,
                         "placeholder": "Attach photos, documents or other files..."
-                      },
-                      {
-                        "id": "f_dynamic_fields",
-                        "label": "Custom Fields",
-                        "type": "dynamic_fields",
-                        "required": false
                       }
                     ]
                   }

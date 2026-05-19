@@ -101,6 +101,80 @@ export function DiaryCreateForm({ template, onSubmit, onClose, isSubmitting }: D
     setIsAddingField(false)
   }
 
+  function renderCustomFieldsSection() {
+    return (
+      <div className="bg-gray-50 border border-dashed border-gray-300 rounded-lg p-4 mt-2">
+        {customFields.length > 0 && (
+          <div className="mb-4 space-y-3">
+            <h4 className="text-sm font-medium text-gray-700">Added Fields</h4>
+            {customFields.map(cf => (
+              <div key={cf.id} className="mb-3 pl-2 border-l-2 border-blue-500">
+                <label htmlFor={cf.id} className="block text-sm font-medium text-gray-700 mb-1">
+                  {cf.label} <span className="text-xs text-gray-400">({cf.type})</span>
+                </label>
+                {renderFieldInput(cf)}
+                {errors[cf.id] && <p className="text-red-500 text-xs mt-1">{errors[cf.id]}</p>}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!isAddingField ? (
+          <button
+            type="button"
+            onClick={() => setIsAddingField(true)}
+            className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+          >
+            + Add Custom Field
+          </button>
+        ) : (
+          <div className="bg-white p-3 border border-gray-200 rounded-md shadow-sm">
+            <div className="mb-3">
+              <label className="block text-xs font-medium text-gray-700 mb-1">Field Name / Label</label>
+              <input
+                type="text"
+                value={newFieldLabel}
+                onChange={e => setNewFieldLabel(e.target.value)}
+                placeholder="e.g., Subcontractor present?"
+                className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                autoFocus
+              />
+            </div>
+            <div className="mb-3">
+              <label className="block text-xs font-medium text-gray-700 mb-1">Field Type</label>
+              <select
+                value={newFieldType}
+                onChange={e => setNewFieldType(e.target.value)}
+                className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+              >
+                <option value="text">Text</option>
+                <option value="number">Number</option>
+                <option value="boolean">Yes/No</option>
+              </select>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <button
+                type="button"
+                onClick={() => setIsAddingField(false)}
+                className="px-2 py-1 text-xs text-gray-600 border border-gray-300 rounded hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleAddCustomField}
+                disabled={!newFieldLabel.trim()}
+                className="px-2 py-1 text-xs text-white bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50"
+              >
+                Add Field
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   function renderFieldInput(field: FieldDef) {
     if (field.type === 'select') {
       return (
@@ -136,77 +210,7 @@ export function DiaryCreateForm({ template, onSubmit, onClose, isSubmitting }: D
     }
 
     if (field.type === 'dynamic_fields') {
-      return (
-        <div className="bg-gray-50 border border-dashed border-gray-300 rounded-lg p-4 mt-2">
-          {customFields.length > 0 && (
-            <div className="mb-4 space-y-3">
-              <h4 className="text-sm font-medium text-gray-700">Added Fields</h4>
-              {customFields.map(cf => (
-                <div key={cf.id} className="mb-3 pl-2 border-l-2 border-blue-500">
-                  <label htmlFor={cf.id} className="block text-sm font-medium text-gray-700 mb-1">
-                    {cf.label} <span className="text-xs text-gray-400">({cf.type})</span>
-                  </label>
-                  {renderFieldInput(cf)}
-                  {errors[cf.id] && <p className="text-red-500 text-xs mt-1">{errors[cf.id]}</p>}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {!isAddingField ? (
-            <button
-              type="button"
-              onClick={() => setIsAddingField(true)}
-              className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
-            >
-              + Add Custom Field
-            </button>
-          ) : (
-            <div className="bg-white p-3 border border-gray-200 rounded-md shadow-sm">
-              <div className="mb-3">
-                <label className="block text-xs font-medium text-gray-700 mb-1">Field Name / Label</label>
-                <input
-                  type="text"
-                  value={newFieldLabel}
-                  onChange={e => setNewFieldLabel(e.target.value)}
-                  placeholder="e.g., Subcontractor present?"
-                  className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
-                  autoFocus
-                />
-              </div>
-              <div className="mb-3">
-                <label className="block text-xs font-medium text-gray-700 mb-1">Field Type</label>
-                <select
-                  value={newFieldType}
-                  onChange={e => setNewFieldType(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
-                >
-                  <option value="text">Text</option>
-                  <option value="number">Number</option>
-                  <option value="boolean">Yes/No</option>
-                </select>
-              </div>
-              <div className="flex gap-2 justify-end">
-                <button
-                  type="button"
-                  onClick={() => setIsAddingField(false)}
-                  className="px-2 py-1 text-xs text-gray-600 border border-gray-300 rounded hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleAddCustomField}
-                  disabled={!newFieldLabel.trim()}
-                  className="px-2 py-1 text-xs text-white bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50"
-                >
-                  Add Field
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      )
+      return null
     }
 
     if (field.type === 'file_attachment') {
@@ -282,6 +286,14 @@ export function DiaryCreateForm({ template, onSubmit, onClose, isSubmitting }: D
             ))}
           </fieldset>
         ))}
+
+        {/* Custom fields are always available now, independent of the template seed data. */}
+        <div className="mb-4">
+          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">
+            Custom Fields
+          </h3>
+          {renderCustomFieldsSection()}
+        </div>
 
         {/* File upload area */}
         <div className="mb-4 border-2 border-dashed border-gray-300 rounded-lg p-4 text-center text-sm text-gray-500">

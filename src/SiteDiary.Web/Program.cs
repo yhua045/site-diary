@@ -1,6 +1,7 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
+using AutoMapper;
 using SiteDiary.Application.Features.Attachments;
 using SiteDiary.Application.Features.AuditLogs;
 using SiteDiary.Application.Features.Diaries;
@@ -66,6 +67,13 @@ builder.Services.AddScoped<ISiteAuthorizationService, SiteAuthorizationService>(
 // ── MVC + OpenAPI ─────────────────────────────────────────────────────────────
 builder.Services.AddControllers();
 builder.Services.AddControllersWithViews();  // Enable Razor views for MVC controllers
+builder.Services.AddSingleton<IMapper>(sp =>
+{
+    var config = new MapperConfiguration(cfg =>
+        cfg.AddMaps(typeof(AuditLogProfile).Assembly),
+        sp.GetRequiredService<ILoggerFactory>());
+    return config.CreateMapper(sp.GetService);
+});
 builder.Services.AddOpenApi();
 
 // ── CORS for React dev server ─────────────────────────────────────────────────
