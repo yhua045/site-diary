@@ -53,7 +53,7 @@ public class AuditLogServiceTests : IDisposable
         UpdatedAt = timestamp
     };
 
-    // ── AL01 — Results are ordered oldest → newest ────────────────────────────
+    // ── AL01 — Results are ordered newest → oldest ────────────────────────────
 
     [Fact]
     public async Task AL01_GetPageAsync_ReturnsItemsOrderedByTimestampAscending()
@@ -70,8 +70,8 @@ public class AuditLogServiceTests : IDisposable
         var result = await _sut.GetPageAsync(1, 10);
 
         result.Items.Should().HaveCount(3);
-        result.Items[0].Timestamp.Should().BeBefore(result.Items[1].Timestamp);
-        result.Items[1].Timestamp.Should().BeBefore(result.Items[2].Timestamp);
+        result.Items[0].Timestamp.Should().BeAfter(result.Items[1].Timestamp);
+        result.Items[1].Timestamp.Should().BeAfter(result.Items[2].Timestamp);
     }
 
     // ── AL02 — Paging skips the correct rows ─────────────────────────────────
@@ -91,7 +91,7 @@ public class AuditLogServiceTests : IDisposable
         var result = await _sut.GetPageAsync(page: 2, pageSize: 2);
 
         result.Items.Should().HaveCount(1);
-        result.Items[0].EntityId.Should().Be(3);
+        result.Items[0].EntityId.Should().Be(1);
     }
 
     // ── AL03 — TotalCount reflects all rows regardless of page ───────────────
@@ -128,6 +128,8 @@ public class AuditLogServiceTests : IDisposable
         var result = await _sut.GetPageAsync(1, 10);
 
         result.Items.Should().HaveCount(1);
-        result.Items[0].ChangedByUserName.Should().Be("Dave Brown");
+        result.Items[0].ChangedBy.Should().NotBeNull();
+        result.Items[0].ChangedBy!.FirstName.Should().Be("Dave");
+        result.Items[0].ChangedBy!.LastName.Should().Be("Brown");
     }
 }

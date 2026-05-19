@@ -230,7 +230,7 @@ public class SiteAuthorizationWebFactory : WebApplicationFactory<Program>
             ConstructionSiteId = site.Id,
             AuthorUserId = userA.Id,
             Title = "Integration Diary",
-            Date = DateOnly.FromDateTime(DateTime.Today),
+            Date = DateTimeOffset.UtcNow,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };

@@ -99,7 +99,9 @@ if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Docke
 }
 
 app.UseHttpsRedirection();
-
+// Serve React build from wwwroot (production)
+app.UseDefaultFiles();
+//app.UseStaticFiles();
 // ── Serve uploaded attachments BEFORE auth middleware — browsers cannot send
 //    custom headers from <img src> so these must be public.  No-store prevents
 //    the browser from caching them, which is what caused the HTTP 304.
@@ -125,9 +127,7 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=AuditLogs}/{action=Index}/{id?}");  // MVC controller routing for Audit Logs, etc.
 
-// Serve React build from wwwroot (production)
-app.UseDefaultFiles();
-app.UseStaticFiles();
+
 app.MapFallbackToFile("index.html");
 
 app.Run();

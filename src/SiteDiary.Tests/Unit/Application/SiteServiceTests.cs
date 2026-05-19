@@ -1,6 +1,5 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using SiteDiary.Application.DTOs;
 using SiteDiary.Application.Services;
 using SiteDiary.Domain.Entities;
 using SiteDiary.Infrastructure.Data;
@@ -84,7 +83,7 @@ public class SiteServiceTests : IDisposable
     public async Task CreateAsync_ValidRequest_AddsAndReturnsSite()
     {
         var service = new SiteService(_uow);
-        var request = new CreateConstructionSiteRequest("New Site", "A description", "10 New St");
+        var request = new ConstructionSite { Name = "New Site", Description = "A description", Address = "10 New St" };
 
         // Act
         var result = await service.CreateAsync(request);
@@ -111,7 +110,7 @@ public class SiteServiceTests : IDisposable
         var service = new SiteService(_uow);
 
         // Act
-        var result = await service.UpdateAsync(site.Id, new UpdateConstructionSiteRequest("New Name", null, "New St"));
+        var result = await service.UpdateAsync(site.Id, new ConstructionSite { Name = "New Name", Description = null, Address = "New St" });
 
         // Assert
         result.Should().NotBeNull();
@@ -124,7 +123,7 @@ public class SiteServiceTests : IDisposable
     {
         var service = new SiteService(_uow);
 
-        var result = await service.UpdateAsync(99, new UpdateConstructionSiteRequest("X", null, "Y"));
+        var result = await service.UpdateAsync(99, new ConstructionSite { Name = "X", Description = null, Address = "Y" });
 
         result.Should().BeNull();
     }

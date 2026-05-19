@@ -130,8 +130,10 @@ public class DiaryTimelineServiceTests : IDisposable
         var result = await service.GetTimelineAsync(siteId: 1);
 
         result.Should().HaveCount(1);
-        result[0].AuthorName.Should().Be("Jane Doe");
-        result[0].AuthorRole.Should().Be("Site Manager");
+        result[0].Author.FirstName.Should().Be("Jane");
+        result[0].Author.LastName.Should().Be("Doe");
+        result[0].Author.UserRoles.Should().ContainSingle();
+        result[0].Author.UserRoles.First().Role?.Name.Should().Be("Site Manager");
     }
 
     [Fact]
@@ -154,11 +156,16 @@ public class DiaryTimelineServiceTests : IDisposable
         var result = await service.GetTimelineAsync(siteId: 1);
 
         result.Should().HaveCount(1);
-        result[0].Payload.ValueKind.Should().Be(JsonValueKind.Object);
-        result[0].Payload.GetProperty("weather").GetString().Should().Be("Sunny");
-        result[0].TemplateSnapshot.Should().HaveCount(1);
-        result[0].TemplateSnapshot[0].Key.Should().Be("weather");
-        result[0].TemplateSnapshot[0].Label.Should().Be("Weather");
+        using var parsedPayload = JsonDocument.Parse(result[0].Payload!);
+        parsedPayload.RootElement.ValueKind.Should().Be(JsonValueKind.Object);
+        parsedPayload.RootElement.GetProperty("weather").GetString().Should().Be("Sunny");
+
+        var snapshot = JsonSerializer.Deserialize<List<FieldDescriptorDto>>(
+            result[0].TemplateSnapshot!,
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        snapshot.Should().ContainSingle();
+        snapshot![0].Key.Should().Be("weather");
+        snapshot[0].Label.Should().Be("Weather");
     }
 
     [Fact]
@@ -177,8 +184,8 @@ public class DiaryTimelineServiceTests : IDisposable
         var result = await service.GetTimelineAsync(siteId: 1);
 
         result.Should().HaveCount(1);
-        result[0].Payload.ValueKind.Should().Be(JsonValueKind.Object);
-        result[0].TemplateSnapshot.Should().BeEmpty();
+        result[0].Payload.Should().BeNull();
+        result[0].TemplateSnapshot.Should().BeNull();
     }
 
     [Fact]
@@ -214,9 +221,9 @@ public class DiaryTimelineServiceTests : IDisposable
         var result = await service.GetTimelineAsync(siteId: 1);
 
         result.Should().HaveCount(1);
-        result[0].Attachments.Should().HaveCount(1);
-        result[0].Attachments[0].FileName.Should().Be("photo.jpg");
-        result[0].Attachments[0].ContentType.Should().Be("image/jpeg");
+        result[0].Attachments.Should().ContainSingle();
+        result[0].Attachments.Single().FileName.Should().Be("photo.jpg");
+        result[0].Attachments.Single().ContentType.Should().Be("image/jpeg");
     }
 
     // ── CreateAsync with TemplateSnapshot tests ────────────────────────────────
@@ -241,13 +248,16 @@ public class DiaryTimelineServiceTests : IDisposable
         await _db.Set<DiaryTemplate>().AddAsync(template);
         await _db.SaveChangesAsync();
 
-        var dto = new CreateDiaryDto(
-            "Test Entry", null,
-            new DateTimeOffset(2026, 5, 16, 0, 0, 0, TimeSpan.Zero),
-            DiaryTemplateId: 1);
+        var diary = new Diary
+        {
+            Title = "Test Entry",
+            Content = null,
+            Date = new DateTimeOffset(2026, 5, 16, 0, 0, 0, TimeSpan.Zero),
+            DiaryTemplateId = 1
+        };
 
         var service = new DiaryService(_uow);
-        var result = await service.CreateAsync(siteId: 1, authorUserId: 10, dto);
+        var result = await service.CreateAsync(siteId: 1, authorUserId: 10, diary);
 
         var saved = await _db.Set<Diary>().FirstAsync(d => d.Id == result.Id);
         saved.TemplateSnapshot.Should().NotBeNullOrWhiteSpace();
@@ -272,13 +282,16 @@ public class DiaryTimelineServiceTests : IDisposable
             ["workers"] = JsonDocument.Parse("12").RootElement.Clone()
         };
 
-        var dto = new CreateDiaryDto(
-            "Test", null,
-            new DateTimeOffset(2026, 5, 16, 0, 0, 0, TimeSpan.Zero),
-            Payload: payloadDict);
+        var diary = new Diary
+        {
+            Title = "Test",
+            Content = null,
+            Date = new DateTimeOffset(2026, 5, 16, 0, 0, 0, TimeSpan.Zero),
+            Payload = JsonSerializer.Serialize(payloadDict)
+        };
 
         var service = new DiaryService(_uow);
-        var result = await service.CreateAsync(siteId: 1, authorUserId: 10, dto);
+        var result = await service.CreateAsync(siteId: 1, authorUserId: 10, diary);
 
         var saved = await _db.Set<Diary>().FirstAsync(d => d.Id == result.Id);
         saved.Payload.Should().NotBeNullOrWhiteSpace();
@@ -309,14 +322,17 @@ public class DiaryTimelineServiceTests : IDisposable
         await _db.Set<DiaryTemplate>().AddAsync(template);
         await _db.SaveChangesAsync();
 
-        var dto = new CreateDiaryDto(
-            "Test", null,
-            new DateTimeOffset(2026, 5, 16, 0, 0, 0, TimeSpan.Zero),
-            DiaryTemplateId: 1,
-            FieldOverrides: new FieldOverridesDto { Removed = new List<string> { "workers" } });
+        var diary = new Diary
+        {
+            Title = "Test",
+            Content = null,
+            Date = new DateTimeOffset(2026, 5, 16, 0, 0, 0, TimeSpan.Zero),
+            DiaryTemplateId = 1,
+            FieldOverrides = JsonSerializer.Serialize(new FieldOverridesDto { Removed = new List<string> { "workers" } })
+        };
 
         var service = new DiaryService(_uow);
-        var result = await service.CreateAsync(siteId: 1, authorUserId: 10, dto);
+        var result = await service.CreateAsync(siteId: 1, authorUserId: 10, diary);
 
         var saved = await _db.Set<Diary>().FirstAsync(d => d.Id == result.Id);
         var snapshot = JsonSerializer.Deserialize<List<FieldDescriptorDto>>(saved.TemplateSnapshot!,

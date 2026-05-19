@@ -99,7 +99,7 @@ public class DiaryServiceV2Tests_InMemory : IDisposable
         result.Should().NotBeNull();
         result!.Id.Should().Be(1);
         result.Attachments.Should().HaveCount(1);
-        result.Attachments[0].FileName.Should().Be("photo.jpg");
+        result.Attachments.Single().FileName.Should().Be("photo.jpg");
     }
 
     [Fact]
@@ -130,13 +130,17 @@ public class DiaryServiceV2Tests_InMemory : IDisposable
         await _db.Set<ConstructionSite>().AddAsync(site);
         await _db.SaveChangesAsync();
 
-        var dto = new CreateDiaryDto("Title", "Content",
-            new DateTimeOffset(2026, 5, 16, 10, 0, 0, TimeSpan.Zero), false);
+        var diary = new Diary
+        {
+            Title = "Title",
+            Content = "Content",
+            Date = new DateTimeOffset(2026, 5, 16, 10, 0, 0, TimeSpan.Zero)
+        };
 
         var service = new DiaryService(_uow);
 
         // Act
-        var result = await service.CreateAsync(siteId: 100, authorUserId: 42, dto);
+        var result = await service.CreateAsync(siteId: 100, authorUserId: 42, diary);
 
         // Assert
         result.ConstructionSiteId.Should().Be(100);
@@ -158,13 +162,17 @@ public class DiaryServiceV2Tests_InMemory : IDisposable
         await _db.Set<Diary>().AddAsync(diary);
         await _db.SaveChangesAsync();
 
-        var dto = new UpdateDiaryDto("Updated Title", "Updated content",
-            new DateTimeOffset(2026, 5, 17, 8, 0, 0, TimeSpan.Zero));
+        var updateValues = new Diary
+        {
+            Title = "Updated Title",
+            Content = "Updated content",
+            Date = new DateTimeOffset(2026, 5, 17, 8, 0, 0, TimeSpan.Zero)
+        };
 
         var service = new DiaryService(_uow);
 
         // Act
-        var result = await service.UpdateAsync(siteId: 1, diaryId: 1, requestingUserId: 10, dto);
+        var result = await service.UpdateAsync(siteId: 1, diaryId: 1, requestingUserId: 10, updateValues);
 
         // Assert
         result.Status.Should().Be(OperationStatus.Success);
@@ -185,12 +193,17 @@ public class DiaryServiceV2Tests_InMemory : IDisposable
         await _db.Set<Diary>().AddAsync(diary);
         await _db.SaveChangesAsync();
 
-        var dto = new UpdateDiaryDto("Title", null, new DateTimeOffset(2026, 5, 16, 0, 0, 0, TimeSpan.Zero));
+        var updateValues = new Diary
+        {
+            Title = "Title",
+            Content = null,
+            Date = new DateTimeOffset(2026, 5, 16, 0, 0, 0, TimeSpan.Zero)
+        };
 
         var service = new DiaryService(_uow);
 
         // Act
-        var result = await service.UpdateAsync(siteId: 1, diaryId: 1, requestingUserId: 99, dto);
+        var result = await service.UpdateAsync(siteId: 1, diaryId: 1, requestingUserId: 99, updateValues);
 
         // Assert
         result.Status.Should().Be(OperationStatus.Forbidden);
@@ -200,12 +213,17 @@ public class DiaryServiceV2Tests_InMemory : IDisposable
     public async Task Update_WhenNotFound_ReturnsNotFound()
     {
         // Arrange
-        var dto = new UpdateDiaryDto("Title", null, new DateTimeOffset(2026, 5, 16, 0, 0, 0, TimeSpan.Zero));
+        var updateValues = new Diary
+        {
+            Title = "Title",
+            Content = null,
+            Date = new DateTimeOffset(2026, 5, 16, 0, 0, 0, TimeSpan.Zero)
+        };
 
         var service = new DiaryService(_uow);
 
         // Act
-        var result = await service.UpdateAsync(siteId: 1, diaryId: 999, requestingUserId: 1, dto);
+        var result = await service.UpdateAsync(siteId: 1, diaryId: 999, requestingUserId: 1, updateValues);
 
         // Assert
         result.Status.Should().Be(OperationStatus.NotFound);
@@ -346,11 +364,13 @@ public class DiaryServiceV2Tests_InMemory : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        result!.FieldOverrides.Should().NotBeNull();
-        result.FieldOverrides!.Removed.Should().ContainSingle(r => r == "f_temp");
-        result.FieldOverrides.Added.Should().HaveCount(1);
-        result.FieldOverrides.Added[0].Id.Should().Be("cust_1");
-        result.FieldOverrides.Added[0].Type.Should().Be("textarea");
+        var overrides = System.Text.Json.JsonSerializer.Deserialize<FieldOverridesDto>(result!.FieldOverrides!,
+            new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        overrides.Should().NotBeNull();
+        overrides!.Removed.Should().ContainSingle(r => r == "f_temp");
+        overrides.Added.Should().HaveCount(1);
+        overrides.Added[0].Id.Should().Be("cust_1");
+        overrides.Added[0].Type.Should().Be("textarea");
     }
 
     [Fact]
@@ -387,13 +407,18 @@ public class DiaryServiceV2Tests_InMemory : IDisposable
             Removed = new[] { "f_temp" },
             Added = new[] { new FieldDef { Id = "cust_1", Label = "Extra", Type = "text" } }
         };
-        var dto = new CreateDiaryDto("Title", null,
-            new DateTimeOffset(2026, 5, 16, 10, 0, 0, TimeSpan.Zero), false, null, overrides);
+        var diary = new Diary
+        {
+            Title = "Title",
+            Content = null,
+            Date = new DateTimeOffset(2026, 5, 16, 10, 0, 0, TimeSpan.Zero),
+            FieldOverrides = System.Text.Json.JsonSerializer.Serialize(overrides)
+        };
 
         var service = new DiaryService(_uow);
 
         // Act
-        var result = await service.CreateAsync(siteId: 100, authorUserId: 42, dto);
+        var result = await service.CreateAsync(siteId: 100, authorUserId: 42, diary);
 
         // Assert
         var saved = await _db.Set<Diary>().FirstAsync(d => d.Id == result.Id);
@@ -413,13 +438,18 @@ public class DiaryServiceV2Tests_InMemory : IDisposable
         await _db.SaveChangesAsync();
 
         var overrides = new FieldOverridesDto { Removed = new[] { "f_incidents" }, Added = Array.Empty<FieldDef>() };
-        var dto = new UpdateDiaryDto("Updated", null,
-            new DateTimeOffset(2026, 5, 16, 0, 0, 0, TimeSpan.Zero), overrides);
+        var updateValues = new Diary
+        {
+            Title = "Updated",
+            Content = null,
+            Date = new DateTimeOffset(2026, 5, 16, 0, 0, 0, TimeSpan.Zero),
+            FieldOverrides = System.Text.Json.JsonSerializer.Serialize(overrides)
+        };
 
         var service = new DiaryService(_uow);
 
         // Act
-        var result = await service.UpdateAsync(siteId: 1, diaryId: 1, requestingUserId: 10, dto);
+        var result = await service.UpdateAsync(siteId: 1, diaryId: 1, requestingUserId: 10, updateValues);
 
         // Assert
         result.Status.Should().Be(OperationStatus.Success);

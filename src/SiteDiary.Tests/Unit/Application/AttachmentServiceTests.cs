@@ -44,7 +44,7 @@ public class AttachmentServiceTests
     public async Task Upload_WhenDiaryExists_CreatesAttachmentAndReturnsDto()
     {
         var diary = new Diary { Id = 1, ConstructionSiteId = 1, AuthorUserId = 10, Title = "D",
-            Date = DateOnly.FromDateTime(DateTime.UtcNow), CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+            Date = DateTimeOffset.UtcNow, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
         _diaryRepo.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(diary);
         _storage.Setup(s => s.UploadAsync(It.IsAny<Stream>(), "photo.jpg", "image/jpeg", It.IsAny<CancellationToken>()))
             .ReturnsAsync("/uploads/photo.jpg");

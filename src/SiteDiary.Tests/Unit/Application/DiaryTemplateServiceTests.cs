@@ -70,12 +70,14 @@ public class DiaryTemplateServiceTests : IDisposable
         result.Should().NotBeNull();
         result!.Id.Should().Be(1);
         result.Name.Should().Be("Template 1");
-        result.Sections.Should().HaveCount(1);
-        result.Sections[0].Id.Should().Be("s1");
-        result.Sections[0].Label.Should().Be("General");
-        result.Sections[0].Fields.Should().HaveCount(1);
-        result.Sections[0].Fields[0].Id.Should().Be("f1");
-        result.Sections[0].Fields[0].Type.Should().Be("textarea");
+        var sections = System.Text.Json.JsonSerializer.Deserialize<List<SectionDef>>(result.Sections,
+            new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        sections.Should().HaveCount(1);
+        sections![0].Id.Should().Be("s1");
+        sections[0].Label.Should().Be("General");
+        sections[0].Fields.Should().HaveCount(1);
+        sections[0].Fields[0].Id.Should().Be("f1");
+        sections[0].Fields[0].Type.Should().Be("textarea");
     }
 
     [Fact]
@@ -93,7 +95,7 @@ public class DiaryTemplateServiceTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        result!.Sections.Should().BeEmpty();
+        result!.Sections.Should().Be("[]");
     }
 
     [Fact]
@@ -157,7 +159,9 @@ public class DiaryTemplateServiceTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        var field = result!.Sections[0].Fields[0];
+        var sections = System.Text.Json.JsonSerializer.Deserialize<List<SectionDef>>(result!.Sections,
+            new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        var field = sections![0].Fields[0];
         field.Type.Should().Be("select");
         field.Required.Should().BeTrue();
         field.Options.Should().BeEquivalentTo(["Sunny", "Rainy", "Cloudy"]);
@@ -194,7 +198,9 @@ public class DiaryTemplateServiceTests : IDisposable
         result.Should().NotBeNull();
         result!.Id.Should().Be(10);
         result.Name.Should().Be("Default Template 10");
-        result.Sections.Should().HaveCount(1);
+        var defaultSections = System.Text.Json.JsonSerializer.Deserialize<List<SectionDef>>(result.Sections,
+            new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        defaultSections.Should().HaveCount(1);
     }
 
     [Fact]

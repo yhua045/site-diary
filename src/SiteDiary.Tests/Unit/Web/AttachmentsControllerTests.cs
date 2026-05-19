@@ -1,4 +1,3 @@
-using AutoMapper;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -6,28 +5,26 @@ using Moq;
 using SiteDiary.Application.Features.Attachments;
 using SiteDiary.Application.Shared;
 using SiteDiary.Domain.Entities;
+using SiteDiary.Web.Middleware;
 using SiteDiary.Web.Features.Attachments;
 
 namespace SiteDiary.Tests.Unit.Web;
 
 /// <summary>
-/// Controller unit tests for AttachmentsController post-refactor (Issue #8).
-/// Service returns Attachment entity; IMapper translates to AttachmentDto at boundary.
-/// Phase B: these fail until the controller is updated in Phase C.
+/// Controller unit tests for AttachmentsController.
 /// </summary>
 public class AttachmentsControllerTests
 {
     private readonly Mock<IAttachmentService> _svc = new();
-    private readonly Mock<IMapper> _mapper = new();
 
     private AttachmentsController MakeController()
     {
-        var ctrl = new AttachmentsController(_svc.Object, _mapper.Object);
+        var ctrl = new AttachmentsController(_svc.Object);
         ctrl.ControllerContext = new ControllerContext
         {
             HttpContext = new DefaultHttpContext()
         };
-        ctrl.HttpContext.Items["CurrentUserId"] = 42;
+        ctrl.HttpContext.Items[HttpContextKeys.UserId] = 42;
         return ctrl;
     }
 
@@ -50,7 +47,6 @@ public class AttachmentsControllerTests
     public async Task Upload_Success_Returns201WithMappedDto()
     {
         var savedEntity = MakeAttachment(1);
-        var responseDto = new AttachmentDto(1, 5, "photo.jpg", "/uploads/photo.jpg", "image/jpeg");
 
         var file = new Mock<IFormFile>();
         file.Setup(f => f.FileName).Returns("photo.jpg");
@@ -59,12 +55,13 @@ public class AttachmentsControllerTests
 
         _svc.Setup(s => s.UploadAsync(5, 42, It.IsAny<Stream>(), "photo.jpg", "image/jpeg", default))
             .ReturnsAsync(OperationResult<Attachment>.Ok(savedEntity));
-        _mapper.Setup(m => m.Map<AttachmentDto>(savedEntity)).Returns(responseDto);
 
         var result = await MakeController().Upload(5, file.Object, default);
 
         result.Result.Should().BeOfType<CreatedAtActionResult>();
-        _mapper.Verify(m => m.Map<AttachmentDto>(savedEntity), Times.Once);
+        var dto = ((CreatedAtActionResult)result.Result!).Value as AttachmentDto;
+        dto.Should().NotBeNull();
+        dto!.FileName.Should().Be("photo.jpg");
     }
 
     [Fact]

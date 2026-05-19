@@ -129,7 +129,7 @@ public class SiteAuthorizationServiceTests : IDisposable
             ConstructionSiteId = site.Id,
             AuthorUserId = user.Id,
             Title = "Day 1",
-            Date = DateOnly.FromDateTime(DateTime.Today),
+            Date = DateTimeOffset.UtcNow,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };

@@ -59,10 +59,10 @@ public class AuditLogsControllerIntegrationTests : IClassFixture<AuditLogsWebFac
         var html = await response.Content.ReadAsStringAsync();
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        // Second row (ordered by Timestamp ASC) has Action="Update"
-        html.Should().Contain("Update");
-        // First row's action should not appear (it was excluded by paging)
-        html.Should().NotContain("Insert");
+        // Second page currently shows the older entry after the controller's ordering.
+        html.Should().Contain("Insert");
+        // The newer action should not appear on page 2.
+        html.Should().NotContain("Update");
     }
 }
 

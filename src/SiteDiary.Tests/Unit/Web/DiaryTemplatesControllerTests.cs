@@ -1,4 +1,3 @@
-using AutoMapper;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -9,15 +8,13 @@ using SiteDiary.Web.Features.DiaryTemplates;
 namespace SiteDiary.Tests.Unit.Web;
 
 /// <summary>
-/// Unit tests for DiaryTemplatesController post-refactor (Issue #8).
-/// Service now returns DiaryTemplate entity; IMapper translates to DiaryTemplateDto at boundary.
+/// Unit tests for DiaryTemplatesController.
 /// </summary>
 public class DiaryTemplatesControllerTests
 {
     private readonly Mock<IDiaryTemplateService> _svc = new();
-    private readonly Mock<IMapper> _mapper = new();
 
-    private DiaryTemplatesController MakeController() => new(_svc.Object, _mapper.Object);
+    private DiaryTemplatesController MakeController() => new(_svc.Object);
 
     private static DiaryTemplate MakeTemplate(int id = 1) => new()
     {
@@ -29,30 +26,21 @@ public class DiaryTemplatesControllerTests
         UpdatedAt = DateTime.UtcNow
     };
 
-    private static DiaryTemplateDto MakeDto(int id = 1) =>
-        new(id, "Test Template", new List<SectionDef>
-        {
-            new() { Id = "s1", Label = "Section 1", Fields = new List<FieldDef>
-            {
-                new() { Id = "f1", Label = "Notes", Type = "textarea" }
-            }}
-        });
-
     [Fact]
-    public async Task GetById_ExistingTemplate_Returns200WithMappedDto()
+    public async Task GetById_ExistingTemplate_Returns200WithEntity()
     {
         var entity = MakeTemplate(1);
-        var dto = MakeDto(1);
 
         _svc.Setup(s => s.GetByIdAsync(1, default)).ReturnsAsync(entity);
-        _mapper.Setup(m => m.Map<DiaryTemplateDto>(entity)).Returns(dto);
 
         var actionResult = await MakeController().GetById(1, default);
 
         actionResult.Result.Should().BeOfType<OkObjectResult>();
         var ok = (OkObjectResult)actionResult.Result!;
-        ok.Value.Should().Be(dto);
-        _mapper.Verify(m => m.Map<DiaryTemplateDto>(entity), Times.Once);
+        var template = ok.Value as DiaryTemplate;
+        template.Should().NotBeNull();
+        template!.Id.Should().Be(1);
+        template.Name.Should().Be("Test Template");
     }
 
     [Fact]

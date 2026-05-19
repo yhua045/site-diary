@@ -150,7 +150,7 @@ public class DataSeederTests
     }
 
     [Fact]
-    public async Task SeedAsync_AllTemplates_HaveDynamicFieldsField()
+    public async Task SeedAsync_AllTemplates_HaveFieldsSectionJson()
     {
         // Arrange
         await using var context = new ApplicationDbContext(NewOptions());
@@ -158,9 +158,9 @@ public class DataSeederTests
         // Act
         await context.SeedAsync();
 
-        // Assert — every template's Sections JSON contains a dynamic_fields field
+        // Assert — every template's Sections JSON contains at least one field definition
         var templates = await context.DiaryTemplates.ToListAsync();
         Assert.All(templates, t =>
-            Assert.Contains("dynamic_fields", t.Sections));
+            Assert.Contains("\"fields\"", t.Sections));
     }
 }
