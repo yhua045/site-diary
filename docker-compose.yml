@@ -22,6 +22,9 @@ services:
       ASPNETCORE_URLS: "http://+:8080"
     ports:
       - "5167:8080"
+    volumes:
+      # Map the host uploads folder into the container so the app can access /app/uploads
+      - ./src/SiteDiary.Web/uploads:/app/uploads
 
 volumes:
   mssql-data:
